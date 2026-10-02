@@ -6,6 +6,8 @@ import 'package:client/pages/select_institution.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
+import 'home.dart';
+
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -78,19 +80,37 @@ class _LoginScreenState extends State<LoginScreen> {
     final studentId = _studentIdController.text.trim();
     final password = _passwordController.text;
 
-    // TODO: send HTTP login request
-    print("Submit");
-    http.Response response = await http.post(
+    try {
+      final response = await http
+          .post(
         Uri.parse("$apiBaseUrl/authenticate"),
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'institution_id': institution,
           'student_id': studentId,
           'password': password,
-        })
-    );
+        }),
+      )
+          .timeout(const Duration(seconds: 10));
+
+      if (!mounted) return;
+
+      if (response.statusCode == 200) {
+        final token = jsonDecode(response.body)['access_token'] as String;
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => HomeScreen(accessToken: token)),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Invalid credentials')),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Couldn't reach the server")),
+      );
+    }
   }
 
   @override

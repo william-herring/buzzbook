@@ -1,6 +1,6 @@
 import os
 from flask import Flask, request, jsonify
-from flask_jwt_extended import create_access_token
+from flask_jwt_extended import create_access_token, JWTManager
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 
@@ -10,6 +10,8 @@ app = Flask(__name__)
 app.secret_key = os.getenv('SECRET_KEY')
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URI')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY')
+jwt = JWTManager(app)
 db.init_app(app)
 migrate = Migrate(app, db)
 
@@ -28,5 +30,5 @@ def authenticate():
         return jsonify({'message': 'Invalid Credentials'}), 401
 
     token = create_access_token(identity=user.id)
-    print("Valid request for user with id " + user.id)
+    print("Valid request for user with id " + str(user.id))
     return jsonify({'access_token': token, 'token_type': 'bearer'}), 200

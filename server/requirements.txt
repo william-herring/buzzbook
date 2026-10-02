@@ -3,3 +3,5 @@ werkzeug
 flask
 flask-migrate
 flask-sqlalchemy
+flask-jwt-extended
+flask-jwt-extended
