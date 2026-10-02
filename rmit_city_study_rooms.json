@@ -1,0 +1,737 @@
+[
+    {
+        "name": "8.05.16",
+        "building": "8",
+        "floor": "5",
+        "room_type": "Library Group Study Room",
+        "capacity": 5,
+        "features": {
+            "Chairs": 0,
+            "Tables": 0,
+            "Whiteboard": 1,
+            "TV": 1,
+            "Projector": 0,
+            "Powerpoints": 0
+        }
+    },
+    {
+        "name": "8.05.17",
+        "building": "8",
+        "floor": "5",
+        "room_type": "Library Group Study Room",
+        "capacity": 5,
+        "features": {
+            "Chairs": 0,
+            "Tables": 0,
+            "Whiteboard": 1,
+            "TV": 1,
+            "Projector": 0,
+            "Powerpoints": 0
+        }
+    },
+    {
+        "name": "8.05.18",
+        "building": "8",
+        "floor": "5",
+        "room_type": "Library Group Study Room",
+        "capacity": 5,
+        "features": {
+            "Chairs": 0,
+            "Tables": 0,
+            "Whiteboard": 0,
+            "TV": 1,
+            "Projector": 0,
+            "Powerpoints": 0
+        }
+    },
+    {
+        "name": "8.05.23",
+        "building": "8",
+        "floor": "5",
+        "room_type": "Library Group Study Room",
+        "capacity": 5,
+        "features": {
+            "Chairs": 0,
+            "Tables": 0,
+            "Whiteboard": 0,
+            "TV": 1,
+            "Projector": 0,
+            "Powerpoints": 0
+        }
+    },
+    {
+        "name": "8.05.24",
+        "building": "8",
+        "floor": "5",
+        "room_type": "Library Group Study Room",
+        "capacity": 5,
+        "features": {
+            "Chairs": 0,
+            "Tables": 0,
+            "Whiteboard": 0,
+            "TV": 1,
+            "Projector": 0,
+            "Powerpoints": 0
+        }
+    },
+    {
+        "name": "8.05.27",
+        "building": "8",
+        "floor": "5",
+        "room_type": "Library Group Study Room",
+        "capacity": 4,
+        "features": {
+            "Chairs": 0,
+            "Tables": 0,
+            "Whiteboard": 0,
+            "TV": 0,
+            "Projector": 0,
+            "Powerpoints": 0
+        }
+    },
+    {
+        "name": "8.05.28",
+        "building": "8",
+        "floor": "5",
+        "room_type": "Library Group Study Room",
+        "capacity": 4,
+        "features": {
+            "Chairs": 0,
+            "Tables": 0,
+            "Whiteboard": 0,
+            "TV": 0,
+            "Projector": 0,
+            "Powerpoints": 0
+        }
+    },
+    {
+        "name": "10.05.67",
+        "building": "10",
+        "floor": "5",
+        "room_type": "Library Group Study Room",
+        "capacity": 6,
+        "features": {
+            "Chairs": 0,
+            "Tables": 1,
+            "Whiteboard": 0,
+            "TV": 1,
+            "Projector": 0,
+            "Powerpoints": 0
+        }
+    },
+    {
+        "name": "10.05.68",
+        "building": "10",
+        "floor": "5",
+        "room_type": "Library Group Study Room",
+        "capacity": 6,
+        "features": {
+            "Chairs": 0,
+            "Tables": 0,
+            "Whiteboard": 0,
+            "TV": 1,
+            "Projector": 0,
+            "Powerpoints": 0
+        }
+    },
+    {
+        "name": "10.05.69",
+        "building": "10",
+        "floor": "5",
+        "room_type": "Library Group Study Room",
+        "capacity": 6,
+        "features": {
+            "Chairs": 0,
+            "Tables": 1,
+            "Whiteboard": 0,
+            "TV": 0,
+            "Projector": 0,
+            "Powerpoints": 0
+        }
+    },
+    {
+        "name": "10.06.65",
+        "building": "10",
+        "floor": "6",
+        "room_type": "Library Group Study Room",
+        "capacity": 6,
+        "features": {
+            "Chairs": 0,
+            "Tables": 1,
+            "Whiteboard": 0,
+            "TV": 0,
+            "Projector": 0,
+            "Powerpoints": 0
+        }
+    },
+    {
+        "name": "10.06.66",
+        "building": "10",
+        "floor": "6",
+        "room_type": "Library Group Study Room",
+        "capacity": 6,
+        "features": {
+            "Chairs": 0,
+            "Tables": 1,
+            "Whiteboard": 0,
+            "TV": 0,
+            "Projector": 0,
+            "Powerpoints": 0
+        }
+    },
+    {
+        "name": "10.06.69",
+        "building": "10",
+        "floor": "6",
+        "room_type": "Library Group Study Room",
+        "capacity": 5,
+        "features": {
+            "Chairs": 0,
+            "Tables": 1,
+            "Whiteboard": 0,
+            "TV": 1,
+            "Projector": 0,
+            "Powerpoints": 0
+        }
+    },
+    {
+        "name": "10.06.70",
+        "building": "10",
+        "floor": "6",
+        "room_type": "Library Group Study Room",
+        "capacity": 4,
+        "features": {
+            "Chairs": 0,
+            "Tables": 1,
+            "Whiteboard": 0,
+            "TV": 0,
+            "Projector": 0,
+            "Powerpoints": 0
+        }
+    },
+    {
+        "name": "10.06.71",
+        "building": "10",
+        "floor": "6",
+        "room_type": "Library Group Study Room",
+        "capacity": 4,
+        "features": {
+            "Chairs": 0,
+            "Tables": 1,
+            "Whiteboard": 0,
+            "TV": 0,
+            "Projector": 0,
+            "Powerpoints": 0
+        }
+    },
+    {
+        "name": "10.06.72",
+        "building": "10",
+        "floor": "6",
+        "room_type": "Library Group Study Room",
+        "capacity": 5,
+        "features": {
+            "Chairs": 0,
+            "Tables": 1,
+            "Whiteboard": 0,
+            "TV": 1,
+            "Projector": 0,
+            "Powerpoints": 0
+        }
+    },
+    {
+        "name": "10.06.76",
+        "building": "10",
+        "floor": "6",
+        "room_type": "Library Group Study Room",
+        "capacity": 6,
+        "features": {
+            "Chairs": 0,
+            "Tables": 1,
+            "Whiteboard": 0,
+            "TV": 0,
+            "Projector": 0,
+            "Powerpoints": 0
+        }
+    },
+    {
+        "name": "12.05.101",
+        "building": "12",
+        "floor": "5",
+        "room_type": "Library Group Study Room",
+        "capacity": 5,
+        "features": {
+            "Chairs": 0,
+            "Tables": 1,
+            "Whiteboard": 0,
+            "TV": 1,
+            "Projector": 0,
+            "Powerpoints": 0
+        }
+    },
+    {
+        "name": "12.05.102",
+        "building": "12",
+        "floor": "5",
+        "room_type": "Library Group Study Room",
+        "capacity": 5,
+        "features": {
+            "Chairs": 0,
+            "Tables": 1,
+            "Whiteboard": 0,
+            "TV": 1,
+            "Projector": 0,
+            "Powerpoints": 0
+        }
+    },
+    {
+        "name": "12.06.102",
+        "building": "12",
+        "floor": "6",
+        "room_type": "Library Group Study Room",
+        "capacity": 8,
+        "features": {
+            "Chairs": 0,
+            "Tables": 0,
+            "Whiteboard": 0,
+            "TV": 0,
+            "Projector": 0,
+            "Powerpoints": 0
+        }
+    },
+    {
+        "name": "94.03.001",
+        "building": "94",
+        "floor": "3",
+        "room_type": "Library Group Study Room",
+        "capacity": 6,
+        "features": {
+            "Chairs": 0,
+            "Tables": 1,
+            "Whiteboard": 1,
+            "TV": 1,
+            "Projector": 0,
+            "Powerpoints": 0
+        }
+    },
+    {
+        "name": "94.03.002",
+        "building": "94",
+        "floor": "3",
+        "room_type": "Library Group Study Room",
+        "capacity": 6,
+        "features": {
+            "Chairs": 0,
+            "Tables": 1,
+            "Whiteboard": 1,
+            "TV": 1,
+            "Projector": 0,
+            "Powerpoints": 0
+        }
+    },
+    {
+        "name": "94.03.003",
+        "building": "94",
+        "floor": "3",
+        "room_type": "Library Group Study Room",
+        "capacity": 6,
+        "features": {
+            "Chairs": 0,
+            "Tables": 1,
+            "Whiteboard": 1,
+            "TV": 1,
+            "Projector": 0,
+            "Powerpoints": 0
+        }
+    },
+    {
+        "name": "94.03.004",
+        "building": "94",
+        "floor": "3",
+        "room_type": "Library Group Study Room",
+        "capacity": 6,
+        "features": {
+            "Chairs": 0,
+            "Tables": 1,
+            "Whiteboard": 1,
+            "TV": 1,
+            "Projector": 0,
+            "Powerpoints": 0
+        }
+    },
+    {
+        "name": "8.04.017",
+        "building": "8",
+        "floor": "4",
+        "room_type": "Project Room",
+        "capacity": 0,
+        "features": {
+            "Chairs": 0,
+            "Tables": 0,
+            "Whiteboard": 0,
+            "TV": 0,
+            "Projector": 0,
+            "Powerpoints": 0
+        }
+    },
+    {
+        "name": "8.04.034",
+        "building": "8",
+        "floor": "4",
+        "room_type": "Project Room",
+        "capacity": 0,
+        "features": {
+            "Chairs": 0,
+            "Tables": 0,
+            "Whiteboard": 0,
+            "TV": 0,
+            "Projector": 0,
+            "Powerpoints": 0
+        }
+    },
+    {
+        "name": "8.04.035",
+        "building": "8",
+        "floor": "4",
+        "room_type": "Project Room",
+        "capacity": 0,
+        "features": {
+            "Chairs": 0,
+            "Tables": 0,
+            "Whiteboard": 0,
+            "TV": 0,
+            "Projector": 0,
+            "Powerpoints": 0
+        }
+    },
+    {
+        "name": "8.04.036",
+        "building": "8",
+        "floor": "4",
+        "room_type": "Project Room",
+        "capacity": 0,
+        "features": {
+            "Chairs": 0,
+            "Tables": 0,
+            "Whiteboard": 0,
+            "TV": 0,
+            "Projector": 0,
+            "Powerpoints": 0
+        }
+    },
+    {
+        "name": "10.13.003A",
+        "building": "10",
+        "floor": "13",
+        "room_type": "Group Study Room",
+        "capacity": 0,
+        "features": {
+            "Chairs": 0,
+            "Tables": 0,
+            "Whiteboard": 0,
+            "TV": 0,
+            "Projector": 0,
+            "Powerpoints": 0
+        }
+    },
+    {
+        "name": "10.13.003B",
+        "building": "10",
+        "floor": "13",
+        "room_type": "Group Study Room",
+        "capacity": 0,
+        "features": {
+            "Chairs": 0,
+            "Tables": 0,
+            "Whiteboard": 0,
+            "TV": 0,
+            "Projector": 0,
+            "Powerpoints": 0
+        }
+    },
+    {
+        "name": "80.02.006",
+        "building": "80",
+        "floor": "2",
+        "room_type": "Group Study Room",
+        "capacity": 0,
+        "features": {
+            "Chairs": 0,
+            "Tables": 0,
+            "Whiteboard": 0,
+            "TV": 0,
+            "Projector": 0,
+            "Powerpoints": 0
+        }
+    },
+    {
+        "name": "80.03.019",
+        "building": "80",
+        "floor": "3",
+        "room_type": "Group Study Room",
+        "capacity": 0,
+        "features": {
+            "Chairs": 0,
+            "Tables": 0,
+            "Whiteboard": 0,
+            "TV": 0,
+            "Projector": 0,
+            "Powerpoints": 0
+        }
+    },
+    {
+        "name": "80.04.016",
+        "building": "80",
+        "floor": "4",
+        "room_type": "Group Study Room",
+        "capacity": 0,
+        "features": {
+            "Chairs": 0,
+            "Tables": 0,
+            "Whiteboard": 0,
+            "TV": 0,
+            "Projector": 0,
+            "Powerpoints": 0
+        }
+    },
+    {
+        "name": "80.05.003",
+        "building": "80",
+        "floor": "5",
+        "room_type": "Group Study Room",
+        "capacity": 0,
+        "features": {
+            "Chairs": 0,
+            "Tables": 0,
+            "Whiteboard": 0,
+            "TV": 0,
+            "Projector": 0,
+            "Powerpoints": 0
+        }
+    },
+    {
+        "name": "80.05.004",
+        "building": "80",
+        "floor": "5",
+        "room_type": "Group Study Room",
+        "capacity": 0,
+        "features": {
+            "Chairs": 0,
+            "Tables": 0,
+            "Whiteboard": 0,
+            "TV": 0,
+            "Projector": 0,
+            "Powerpoints": 0
+        }
+    },
+    {
+        "name": "80.05.005",
+        "building": "80",
+        "floor": "5",
+        "room_type": "Group Study Room",
+        "capacity": 0,
+        "features": {
+            "Chairs": 0,
+            "Tables": 0,
+            "Whiteboard": 0,
+            "TV": 0,
+            "Projector": 0,
+            "Powerpoints": 0
+        }
+    },
+    {
+        "name": "80.06.012",
+        "building": "80",
+        "floor": "6",
+        "room_type": "Group Study Room",
+        "capacity": 0,
+        "features": {
+            "Chairs": 0,
+            "Tables": 0,
+            "Whiteboard": 0,
+            "TV": 0,
+            "Projector": 0,
+            "Powerpoints": 0
+        }
+    },
+    {
+        "name": "80.06.013",
+        "building": "80",
+        "floor": "6",
+        "room_type": "Group Study Room",
+        "capacity": 0,
+        "features": {
+            "Chairs": 0,
+            "Tables": 0,
+            "Whiteboard": 0,
+            "TV": 0,
+            "Projector": 0,
+            "Powerpoints": 0
+        }
+    },
+    {
+        "name": "80.08.002",
+        "building": "80",
+        "floor": "8",
+        "room_type": "Group Study Room",
+        "capacity": 0,
+        "features": {
+            "Chairs": 0,
+            "Tables": 0,
+            "Whiteboard": 0,
+            "TV": 0,
+            "Projector": 0,
+            "Powerpoints": 0
+        }
+    },
+    {
+        "name": "80.08.003",
+        "building": "80",
+        "floor": "8",
+        "room_type": "Group Study Room",
+        "capacity": 0,
+        "features": {
+            "Chairs": 0,
+            "Tables": 0,
+            "Whiteboard": 0,
+            "TV": 0,
+            "Projector": 0,
+            "Powerpoints": 0
+        }
+    },
+    {
+        "name": "80.08.008",
+        "building": "80",
+        "floor": "8",
+        "room_type": "Group Study Room",
+        "capacity": 0,
+        "features": {
+            "Chairs": 0,
+            "Tables": 0,
+            "Whiteboard": 0,
+            "TV": 0,
+            "Projector": 0,
+            "Powerpoints": 0
+        }
+    },
+    {
+        "name": "80.09.014",
+        "building": "80",
+        "floor": "9",
+        "room_type": "Group Study Room",
+        "capacity": 0,
+        "features": {
+            "Chairs": 0,
+            "Tables": 0,
+            "Whiteboard": 0,
+            "TV": 0,
+            "Projector": 0,
+            "Powerpoints": 0
+        }
+    },
+    {
+        "name": "80.09.015",
+        "building": "80",
+        "floor": "9",
+        "room_type": "Group Study Room",
+        "capacity": 0,
+        "features": {
+            "Chairs": 0,
+            "Tables": 0,
+            "Whiteboard": 0,
+            "TV": 0,
+            "Projector": 0,
+            "Powerpoints": 0
+        }
+    },
+    {
+        "name": "80.10.002",
+        "building": "80",
+        "floor": "10",
+        "room_type": "Group Study Room",
+        "capacity": 0,
+        "features": {
+            "Chairs": 0,
+            "Tables": 0,
+            "Whiteboard": 0,
+            "TV": 0,
+            "Projector": 0,
+            "Powerpoints": 0
+        }
+    },
+    {
+        "name": "80.10.003",
+        "building": "80",
+        "floor": "10",
+        "room_type": "Group Study Room",
+        "capacity": 0,
+        "features": {
+            "Chairs": 0,
+            "Tables": 0,
+            "Whiteboard": 0,
+            "TV": 0,
+            "Projector": 0,
+            "Powerpoints": 0
+        }
+    },
+    {
+        "name": "80.10.004",
+        "building": "80",
+        "floor": "10",
+        "room_type": "Group Study Room",
+        "capacity": 0,
+        "features": {
+            "Chairs": 0,
+            "Tables": 0,
+            "Whiteboard": 0,
+            "TV": 0,
+            "Projector": 0,
+            "Powerpoints": 0
+        }
+    },
+    {
+        "name": "80.11.002",
+        "building": "80",
+        "floor": "11",
+        "room_type": "Group Study Room",
+        "capacity": 0,
+        "features": {
+            "Chairs": 0,
+            "Tables": 0,
+            "Whiteboard": 0,
+            "TV": 0,
+            "Projector": 0,
+            "Powerpoints": 0
+        }
+    },
+    {
+        "name": "80.11.003",
+        "building": "80",
+        "floor": "11",
+        "room_type": "Group Study Room",
+        "capacity": 0,
+        "features": {
+            "Chairs": 0,
+            "Tables": 0,
+            "Whiteboard": 0,
+            "TV": 0,
+            "Projector": 0,
+            "Powerpoints": 0
+        }
+    },
+    {
+        "name": "80.11.004",
+        "building": "80",
+        "floor": "11",
+        "room_type": "Group Study Room",
+        "capacity": 0,
+        "features": {
+            "Chairs": 0,
+            "Tables": 0,
+            "Whiteboard": 0,
+            "TV": 0,
+            "Projector": 0,
+            "Powerpoints": 0
+        }
+    }
+]
