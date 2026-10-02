@@ -1,6 +1,10 @@
+import 'dart:convert';
+
+import 'package:client/constants.dart';
 import 'package:client/pages/user_credentials.dart';
 import 'package:client/pages/select_institution.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -67,7 +71,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void _onBack() => _goToStep(_currentStep - 1);
 
-  void _submit() {
+  void _submit() async {
     if (!_credentialsFormKey.currentState!.validate()) return;
 
     final institution = _institution!;
@@ -75,7 +79,18 @@ class _LoginScreenState extends State<LoginScreen> {
     final password = _passwordController.text;
 
     // TODO: send HTTP login request
-    debugPrint('Received login for $studentId at $institution with password $password');
+    print("Submit");
+    http.Response response = await http.post(
+        Uri.parse("$apiBaseUrl/authenticate"),
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: jsonEncode({
+          'institution_id': institution,
+          'student_id': studentId,
+          'password': password,
+        })
+    );
   }
 
   @override

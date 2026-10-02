@@ -1,10 +1,11 @@
+from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 
-from app import db
+db = SQLAlchemy()
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    institution_id = db.Column(db.Integer, db.ForeignKey('Institution.id'))
+    institution_id = db.Column(db.Integer, db.ForeignKey('institution.id'))
     email = db.Column(db.String(120), unique=True, nullable=False)
     student_id = db.Column(db.String(50), unique=True, nullable=False)
     password_hash = db.Column(db.String(200), nullable=False)
@@ -23,14 +24,14 @@ class Institution(db.Model):
 class Building(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String)
-    institution_id = db.Column(db.Integer, db.ForeignKey('Institution.id'))
+    institution_id = db.Column(db.Integer, db.ForeignKey('institution.id'))
     latitude = db.Column(db.Float)
     longitude = db.Column(db.Float)
 
 class Room(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String)
-    building_id = db.Column(db.Integer, db.ForeignKey('Building.id'))
+    building_id = db.Column(db.Integer, db.ForeignKey('building.id'))
     floor = db.Column(db.Integer)
     room_type = db.Column(db.String)
     capacity = db.Column(db.Integer)

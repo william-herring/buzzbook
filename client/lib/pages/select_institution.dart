@@ -13,9 +13,9 @@ class SelectInstitutionStep extends StatelessWidget {
   final String? errorText;
 
   static const _institutions = <DropdownMenuEntry<String>>[
-    DropdownMenuEntry(value: 'RMIT', label: 'RMIT University'),
-    DropdownMenuEntry(value: 'UniMelb', label: 'The University of Melbourne'),
-    DropdownMenuEntry(value: 'Monash', label: 'Monash University'),
+    DropdownMenuEntry(value: '1', label: 'RMIT University'),
+    DropdownMenuEntry(value: '2', label: 'The University of Melbourne'),
+    DropdownMenuEntry(value: '3', label: 'Monash University'),
   ];
 
   @override
