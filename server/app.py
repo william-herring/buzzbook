@@ -10,7 +10,6 @@ app = Flask(__name__)
 app.secret_key = os.getenv('SECRET_KEY')
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URI')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.run(host='0.0.0.0', port=5000) # needed to listen on all local network interfaces
 db.init_app(app)
 migrate = Migrate(app, db)
 
