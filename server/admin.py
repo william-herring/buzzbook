@@ -44,9 +44,7 @@ PAGE = """
   <h2>Add an institution</h2>
   <div class="card">
     <p class="hint">
-      Upload a JSON file shaped like <code>rmit_institution.json</code>
-      (<code>name</code>, <code>buildings</code>, <code>users</code>, <code>rooms</code>).
-      If an institution with the same name already exists it is updated instead.
+      Upload an institution JSON data file to create or update an institution.
     </p>
     <form method="post" action="{{ url_for('admin_upload') }}" enctype="multipart/form-data">
       <input type="hidden" name="csrf" value="{{ csrf }}">
