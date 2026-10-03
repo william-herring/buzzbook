@@ -1,4 +1,8 @@
 import json
+import io
+import zipfile
+import qrcode
+from qrcode.constants import ERROR_CORRECT_M
 
 from models import db, Institution, Building, Room, User
 
@@ -11,6 +15,7 @@ FEATURE_COLUMNS = {
     "Powerpoints": "powerpoints",
 }
 
+DEFAULT_PREFIX = "buzzbook://room/"
 
 def _get_or_create(model, lookup, **values):
     obj = model.query.filter_by(**lookup).first()
@@ -78,3 +83,28 @@ def populate_from_file(path):
         raise
 
     return counts
+
+
+def generate_room_qr_zip(institution_id, output_path, prefix=DEFAULT_PREFIX):
+    rooms = (
+        Room.query
+        .join(Building, Room.building_id == Building.id)
+        .filter(Building.institution_id == institution_id)
+        .order_by(Building.name, Room.name)
+        .add_columns(Building.name)
+        .all()
+    )
+    if not rooms:
+        raise ValueError(f"No rooms found for institution {institution_id}")
+
+    with zipfile.ZipFile(output_path, "w", zipfile.ZIP_DEFLATED) as archive:
+        for room, building_name in rooms:
+            qr = qrcode.QRCode(error_correction=ERROR_CORRECT_M, box_size=12, border=4)
+            qr.add_data(f"{prefix}{room.id}")
+            qr.make(fit=True)
+
+            buffer = io.BytesIO()
+            qr.make_image(fill_color="black", back_color="white").save(buffer, format="PNG")
+            archive.writestr(f"{building_name}/{room.name}.png", buffer.getvalue())
+
+    return len(rooms)

@@ -38,7 +38,7 @@ def authenticate():
     return jsonify({'access_token': token, 'token_type': 'bearer'}), 200
 
 @app.route('/get-rooms', methods=['GET'])
-@jwt_required
+@jwt_required()
 def get_rooms():
     user_id = get_jwt_identity()
     user = User.query.filter_by(id=user_id).first()
@@ -76,7 +76,7 @@ def get_rooms():
         return jsonify(result)
 
 @app.route('/get-buildings', methods=['GET'])
-@jwt_required
+@jwt_required()
 def get_all_buildings():
     user_id = get_jwt_identity()
     user = User.query.filter_by(id=user_id).first()
