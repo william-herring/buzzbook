@@ -4,7 +4,6 @@ import 'package:latlong2/latlong.dart';
 
 import '../models/booking.dart';
 import '../models/building.dart';
-import '../models/building_outlines.dart';
 import '../models/room.dart';
 import '../models/room_filters.dart';
 import '../theme/colors.dart';
@@ -14,7 +13,7 @@ import '../widgets/load_error.dart';
 import '../widgets/map_markers.dart';
 import 'booking_screen.dart';
 
-// The main screen: a map of RMIT City campus.
+// The main screen: a map of the user's campus.
 // Tap a building → its rooms appear as coloured pins → tap a pin → booking page.
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -60,7 +59,14 @@ class _MapScreenState extends State<MapScreen> {
     setState(() => error = null);
     try {
       final rooms = await loadRooms(refresh: refresh);
-      if (mounted) setState(() => allRooms = rooms);
+      if (!mounted) return;
+      setState(() => allRooms = rooms);
+
+      // loadRooms() has worked out where this institution's campus is, so move
+      // the map there (the map starts out over RMIT until then).
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) mapController.move(campusCentre, 17);
+      });
     } catch (e) {
       if (mounted) setState(() => error = e);
     }
@@ -78,11 +84,8 @@ class _MapScreenState extends State<MapScreen> {
   // (The server's positions are a little off for some buildings, so they don't
   // always line up with the outlines.)
   LatLng spotFor(Building building) {
-    final outline = buildingOutlines[building.id];
-    if (outline == null) return building.location;
-    final lat = outline.map((p) => p.latitude).reduce((a, b) => a + b) / outline.length;
-    final lng = outline.map((p) => p.longitude).reduce((a, b) => a + b) / outline.length;
-    return LatLng(lat, lng);
+    final outline = outlineFor(building);
+    return outline == null ? building.location : centroidOf(outline);
   }
 
   void selectBuilding(Building building) {
@@ -119,10 +122,6 @@ class _MapScreenState extends State<MapScreen> {
               initialZoom: 17,
               minZoom: 15,
               maxZoom: 20,
-              // Stop the map being dragged too far away from campus.
-              cameraConstraint: CameraConstraint.containCenter(
-                bounds: LatLngBounds(const LatLng(-37.815, 144.955), const LatLng(-37.800, 144.972)),
-              ),
               // Pinch-zoom, drag, scroll-wheel and double-tap zoom are all on by
               // default. We only switch off rotating, which is easy to do by
               // accident while pinching.
@@ -194,6 +193,8 @@ class _MapScreenState extends State<MapScreen> {
 
   // Each building's outline, filled in like a stadium seating section.
   // Tapping anywhere inside a shape selects that building.
+  // Only buildings we have an outline for get a shape (see outlineFor); the
+  // rest are still tappable through their label.
   Widget buildingShapes() {
     return MouseRegion(
       hitTestBehavior: HitTestBehavior.deferToChild,
@@ -207,17 +208,17 @@ class _MapScreenState extends State<MapScreen> {
         child: PolygonLayer<String>(
           hitNotifier: buildingHit,
           polygons: [
-            // Only buildings we have an outline shape for (see building_outlines.dart).
-            for (final building in campusBuildings.where((b) => buildingOutlines.containsKey(b.id)))
-              Polygon<String>(
-                points: buildingOutlines[building.id]!,
-                hitValue: building.id, // what buildingHit reports when this shape is tapped
-                color: building == selectedBuilding
-                    ? AppColors.lilac.withValues(alpha: 0.7)
-                    : AppColors.yellow.withValues(alpha: 0.6),
-                borderColor: building == selectedBuilding ? AppColors.lilacDark : AppColors.ink,
-                borderStrokeWidth: building == selectedBuilding ? 2.5 : 1.5,
-              ),
+            for (final building in campusBuildings)
+              if (outlineFor(building) case final outline?)
+                Polygon<String>(
+                  points: outline,
+                  hitValue: building.id, // what buildingHit reports when this shape is tapped
+                  color: building == selectedBuilding
+                      ? AppColors.lilac.withValues(alpha: 0.7)
+                      : AppColors.yellow.withValues(alpha: 0.6),
+                  borderColor: building == selectedBuilding ? AppColors.lilacDark : AppColors.ink,
+                  borderStrokeWidth: building == selectedBuilding ? 2.5 : 1.5,
+                ),
           ],
         ),
       ),
@@ -258,7 +259,7 @@ class _MapScreenState extends State<MapScreen> {
             child: GestureDetector(
               onTap: () => selectBuilding(building),
               child: BuildingMarker(
-                label: building.id,
+                label: building.shortLabel,
                 freeCount: roomsIn(building).where((r) => r.status == RoomStatus.free).length,
                 selected: false,
               ),

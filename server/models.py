@@ -30,6 +30,7 @@ class Building(db.Model):
     institution_id = db.Column(db.Integer, db.ForeignKey('institution.id'))
     latitude = db.Column(db.Float)
     longitude = db.Column(db.Float)
+    outline = db.Column(db.JSON)
 
 class Room(db.Model):
     id = db.Column(db.Integer, primary_key=True)

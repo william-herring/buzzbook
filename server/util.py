@@ -1,10 +1,12 @@
 import json
 import io
+import re
 import zipfile
 from datetime import timezone
 from math import radians, sin, asin, sqrt, cos
 
 import qrcode
+from PIL import Image, ImageDraw, ImageFont
 from qrcode.constants import ERROR_CORRECT_M
 
 from models import db, Institution, Building, Room, User, Booking
@@ -20,15 +22,6 @@ FEATURE_COLUMNS = {
 
 DEFAULT_PREFIX = "buzzbook://room/"
 
-FEATURE_COLUMNS = {
-    "Chairs": "chairs",
-    "Tables": "tables",
-    "Whiteboard": "whiteboards",
-    "TV": "televisions",
-    "Projector": "projectors",
-    "Powerpoints": "powerpoints",
-}
-
 
 def _get_or_create(model, lookup, **values):
     obj = model.query.filter_by(**lookup).first()
@@ -41,13 +34,39 @@ def _get_or_create(model, lookup, **values):
     return obj, created
 
 
+def _clean_outline(building_name, outline):
+    valid = (
+        isinstance(outline, list)
+        and len(outline) >= 3
+        and all(
+            isinstance(p, (list, tuple))
+            and len(p) == 2
+            and all(isinstance(v, (int, float)) and not isinstance(v, bool) for v in p)
+            and -90 <= p[0] <= 90
+            and -180 <= p[1] <= 180
+            for p in outline
+        )
+    )
+    if not valid:
+        raise ValueError(
+            f"The outline for {building_name} must be a list of at least 3 "
+            f"[latitude, longitude] pairs"
+        )
+    return [[float(lat), float(lng)] for lat, lng in outline]
+
+
 def populate_from_file(path):
     with open(path, encoding="utf-8") as f:
-        data = json.load(f)
+        return populate_from_data(json.load(f), source=path)
+
+
+def populate_from_data(data, source="the data"):
+    if not isinstance(data, dict):
+        raise ValueError(f"{source} must contain a JSON object, not a list or a single value")
 
     for key in ("name", "buildings", "users", "rooms"):
         if key not in data:
-            raise ValueError(f"'{key}' missing from {path}")
+            raise ValueError(f"'{key}' missing from {source}")
 
     building_defs = {str(b["building_id"]): b for b in data["buildings"]}
     undefined = sorted({str(r["building"]) for r in data["rooms"]} - building_defs.keys())
@@ -68,11 +87,15 @@ def populate_from_file(path):
 
         buildings = {}
         for building_id, b in building_defs.items():
+            extra = {}
+            if b.get("outline") is not None:
+                extra["outline"] = _clean_outline(b["name"], b["outline"])
             buildings[building_id], created = _get_or_create(
                 Building,
                 {"institution_id": institution.id, "name": b["name"]},
                 latitude=b.get("latitude"),
                 longitude=b.get("longitude"),
+                **extra,
             )
             counts["buildings"] += created
         db.session.flush()
@@ -93,6 +116,11 @@ def populate_from_file(path):
             counts["rooms"] += created
 
         for u in data["users"]:
+            existing = User.query.filter_by(student_id=u["student_id"]).first()
+            if existing and existing.institution_id not in (None, institution.id):
+                raise ValueError(
+                    f"Student {u['student_id']} already belongs to a different institution"
+                )
             user, created = _get_or_create(
                 User,
                 {"student_id": u["student_id"]},
@@ -129,11 +157,42 @@ def generate_room_qr_zip(institution_id, output_path, prefix=DEFAULT_PREFIX):
             qr.add_data(f"{prefix}{room.id}")
             qr.make(fit=True)
 
+            image = _with_caption(
+                qr.make_image(fill_color="black", back_color="white").get_image(),
+                f"{building_name} · {room.name}",
+            )
             buffer = io.BytesIO()
-            qr.make_image(fill_color="black", back_color="white").save(buffer, format="PNG")
-            archive.writestr(f"{building_name}/{room.name}.png", buffer.getvalue())
+            image.save(buffer, format="PNG")
+            archive.writestr(
+                f"{_safe_filename(building_name)}/{_safe_filename(room.name)}.png",
+                buffer.getvalue(),
+            )
 
     return len(rooms)
+
+
+def _with_caption(qr_image, caption):
+    # Prints the room under its QR code, so a sheet of printed codes can be told apart.
+    qr_image = qr_image.convert("RGB")
+    try:
+        font = ImageFont.load_default(size=32)
+    except TypeError:  # Pillow older than 10.1 has one fixed-size font
+        font = ImageFont.load_default()
+    width, height = qr_image.size
+    left, top, right, bottom = ImageDraw.Draw(qr_image).textbbox((0, 0), caption, font=font)
+    canvas = Image.new("RGB", (max(width, right - left + 40), height + (bottom - top) + 30), "white")
+    canvas.paste(qr_image, ((canvas.width - width) // 2, 0))
+    ImageDraw.Draw(canvas).text(
+        ((canvas.width - (right - left)) // 2, height - top), caption, fill="black", font=font
+    )
+    return canvas
+
+
+def _safe_filename(name):
+    # Building and room names become folder and file names in the zip; strip the
+    # characters Windows and macOS don't allow in file names.
+    cleaned = re.sub(r'[<>:"/\\|?*\x00-\x1f]', "-", str(name)).strip(" .")
+    return cleaned or "unnamed"
 
 def iso_utc(dt):
     if dt.tzinfo is None:

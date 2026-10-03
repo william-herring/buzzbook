@@ -11,6 +11,7 @@ from sqlalchemy.exc import IntegrityError
 from models import *
 from util import haversine_metres, find_current_booking, iso_utc, as_utc
 from scheduler import start_scheduler, NO_SHOW_GRACE
+from admin import register_admin
 
 app = Flask(__name__)
 app.secret_key = os.getenv('SECRET_KEY')
@@ -26,10 +27,16 @@ with app.app_context():
     db.session.commit()
 
 start_scheduler(app)
+register_admin(app)
 
 @jwt.token_in_blocklist_loader
 def is_token_revoked(jwt_header, jwt_payload):
     return TokenBlocklist.query.filter_by(jti=jwt_payload['jti']).first() is not None
+
+@app.route('/institutions', methods=['GET'])
+def get_institutions():
+    institutions = Institution.query.order_by(Institution.name).all()
+    return jsonify([{'id': i.id, 'name': i.name} for i in institutions])
 
 @app.route('/authenticate', methods=['POST'])
 def authenticate():
@@ -101,6 +108,7 @@ def get_all_buildings():
             'name': building.name,
             'latitude': building.latitude,
             'longitude': building.longitude,
+            'outline': building.outline,
         })
 
     return jsonify(result)

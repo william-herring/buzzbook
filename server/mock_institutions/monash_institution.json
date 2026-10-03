@@ -1,0 +1,520 @@
+{
+  "name": "Monash University",
+  "latitude": -37.914,
+  "longitude": 145.131,
+  "buildings": [
+    {
+      "building_id": "25",
+      "name": "Building 25",
+      "latitude": -37.9107,
+      "longitude": 145.13246,
+      "outline": [
+        [
+          -37.91049,
+          145.132013
+        ],
+        [
+          -37.910547,
+          145.132461
+        ],
+        [
+          -37.910667,
+          145.132437
+        ],
+        [
+          -37.910671,
+          145.132465
+        ],
+        [
+          -37.910675,
+          145.132516
+        ],
+        [
+          -37.910623,
+          145.132524
+        ],
+        [
+          -37.910621,
+          145.132507
+        ],
+        [
+          -37.910545,
+          145.132522
+        ],
+        [
+          -37.91058,
+          145.132799
+        ],
+        [
+          -37.91066,
+          145.132782
+        ],
+        [
+          -37.910662,
+          145.132799
+        ],
+        [
+          -37.910774,
+          145.132776
+        ],
+        [
+          -37.910772,
+          145.13276
+        ],
+        [
+          -37.91085,
+          145.132748
+        ],
+        [
+          -37.910814,
+          145.132467
+        ],
+        [
+          -37.910837,
+          145.132464
+        ],
+        [
+          -37.910813,
+          145.132257
+        ],
+        [
+          -37.910822,
+          145.132256
+        ],
+        [
+          -37.910796,
+          145.132066
+        ],
+        [
+          -37.910775,
+          145.13207
+        ],
+        [
+          -37.910761,
+          145.131959
+        ]
+      ]
+    },
+    {
+      "building_id": "29",
+      "name": "Building 29",
+      "latitude": -37.90954,
+      "longitude": 145.13124,
+      "outline": [
+        [
+          -37.909425,
+          145.13112
+        ],
+        [
+          -37.909465,
+          145.131434
+        ],
+        [
+          -37.909523,
+          145.131425
+        ],
+        [
+          -37.909561,
+          145.131407
+        ],
+        [
+          -37.909565,
+          145.131422
+        ],
+        [
+          -37.909596,
+          145.131407
+        ],
+        [
+          -37.909592,
+          145.131392
+        ],
+        [
+          -37.90961,
+          145.131384
+        ],
+        [
+          -37.909601,
+          145.131316
+        ],
+        [
+          -37.909629,
+          145.131317
+        ],
+        [
+          -37.90961,
+          145.131166
+        ],
+        [
+          -37.909584,
+          145.131179
+        ],
+        [
+          -37.909575,
+          145.131111
+        ],
+        [
+          -37.909554,
+          145.13111
+        ],
+        [
+          -37.909555,
+          145.131086
+        ],
+        [
+          -37.909517,
+          145.131078
+        ],
+        [
+          -37.909478,
+          145.131082
+        ],
+        [
+          -37.909479,
+          145.131086
+        ],
+        [
+          -37.909455,
+          145.131091
+        ],
+        [
+          -37.909458,
+          145.131114
+        ]
+      ]
+    },
+    {
+      "building_id": "55",
+      "name": "Building 55",
+      "latitude": -37.9144,
+      "longitude": 145.1315,
+      "outline": [
+        [
+          -37.91429,
+          145.13126
+        ],
+        [
+          -37.91429,
+          145.13174
+        ],
+        [
+          -37.91451,
+          145.13174
+        ],
+        [
+          -37.91451,
+          145.13126
+        ]
+      ]
+    },
+    {
+      "building_id": "72",
+      "name": "Building 72",
+      "latitude": -37.90923,
+      "longitude": 145.13203,
+      "outline": [
+        [
+          -37.909041,
+          145.132322
+        ],
+        [
+          -37.909035,
+          145.132097
+        ],
+        [
+          -37.909151,
+          145.13209
+        ],
+        [
+          -37.909147,
+          145.13198
+        ],
+        [
+          -37.909126,
+          145.131976
+        ],
+        [
+          -37.909112,
+          145.131943
+        ],
+        [
+          -37.909111,
+          145.131889
+        ],
+        [
+          -37.909122,
+          145.131855
+        ],
+        [
+          -37.90924,
+          145.131824
+        ],
+        [
+          -37.909244,
+          145.132001
+        ],
+        [
+          -37.909303,
+          145.131998
+        ],
+        [
+          -37.909305,
+          145.132083
+        ],
+        [
+          -37.909672,
+          145.132066
+        ],
+        [
+          -37.909679,
+          145.132292
+        ]
+      ]
+    }
+  ],
+  "users": [
+    {
+      "student_id": "32145601",
+      "email": "mia.wilson@student.monash.edu",
+      "password": "password"
+    },
+    {
+      "student_id": "32145602",
+      "email": "ethan.zhang@student.monash.edu",
+      "password": "password"
+    },
+    {
+      "student_id": "32145603",
+      "email": "chloe.martin@student.monash.edu",
+      "password": "password"
+    },
+    {
+      "student_id": "32145604",
+      "email": "lucas.singh@student.monash.edu",
+      "password": "password"
+    }
+  ],
+  "rooms": [
+    {
+      "name": "25.01.012",
+      "building": "25",
+      "floor": "1",
+      "room_type": "Library Group Study Room",
+      "capacity": 6,
+      "features": {
+        "Chairs": 0,
+        "Tables": 0,
+        "Whiteboard": 0,
+        "TV": 0,
+        "Projector": 0,
+        "Powerpoints": 0
+      },
+      "latitude": -37.9118,
+      "longitude": 145.1315
+    },
+    {
+      "name": "25.01.013",
+      "building": "25",
+      "floor": "1",
+      "room_type": "Library Group Study Room",
+      "capacity": 6,
+      "features": {
+        "Chairs": 0,
+        "Tables": 1,
+        "Whiteboard": 0,
+        "TV": 0,
+        "Projector": 0,
+        "Powerpoints": 0
+      },
+      "latitude": -37.9118,
+      "longitude": 145.1315
+    },
+    {
+      "name": "25.02.014",
+      "building": "25",
+      "floor": "2",
+      "room_type": "Library Group Study Room",
+      "capacity": 8,
+      "features": {
+        "Chairs": 0,
+        "Tables": 1,
+        "Whiteboard": 0,
+        "TV": 0,
+        "Projector": 0,
+        "Powerpoints": 0
+      },
+      "latitude": -37.9118,
+      "longitude": 145.1315
+    },
+    {
+      "name": "25.02.015",
+      "building": "25",
+      "floor": "2",
+      "room_type": "Library Group Study Room",
+      "capacity": 4,
+      "features": {
+        "Chairs": 0,
+        "Tables": 1,
+        "Whiteboard": 0,
+        "TV": 1,
+        "Projector": 0,
+        "Powerpoints": 0
+      },
+      "latitude": -37.9118,
+      "longitude": 145.1315
+    },
+    {
+      "name": "29.01.003",
+      "building": "29",
+      "floor": "1",
+      "room_type": "Group Study Room",
+      "capacity": 5,
+      "features": {
+        "Chairs": 0,
+        "Tables": 0,
+        "Whiteboard": 1,
+        "TV": 0,
+        "Projector": 0,
+        "Powerpoints": 0
+      },
+      "latitude": -37.9126,
+      "longitude": 145.1325
+    },
+    {
+      "name": "29.01.004",
+      "building": "29",
+      "floor": "1",
+      "room_type": "Group Study Room",
+      "capacity": 5,
+      "features": {
+        "Chairs": 0,
+        "Tables": 0,
+        "Whiteboard": 1,
+        "TV": 1,
+        "Projector": 0,
+        "Powerpoints": 0
+      },
+      "latitude": -37.9126,
+      "longitude": 145.1325
+    },
+    {
+      "name": "29.03.021",
+      "building": "29",
+      "floor": "3",
+      "room_type": "Group Study Room",
+      "capacity": 6,
+      "features": {
+        "Chairs": 0,
+        "Tables": 1,
+        "Whiteboard": 0,
+        "TV": 0,
+        "Projector": 0,
+        "Powerpoints": 0
+      },
+      "latitude": -37.9126,
+      "longitude": 145.1325
+    },
+    {
+      "name": "55.02.101",
+      "building": "55",
+      "floor": "2",
+      "room_type": "Project Room",
+      "capacity": 8,
+      "features": {
+        "Chairs": 0,
+        "Tables": 0,
+        "Whiteboard": 0,
+        "TV": 1,
+        "Projector": 0,
+        "Powerpoints": 0
+      },
+      "latitude": -37.9144,
+      "longitude": 145.1315
+    },
+    {
+      "name": "55.02.102",
+      "building": "55",
+      "floor": "2",
+      "room_type": "Project Room",
+      "capacity": 8,
+      "features": {
+        "Chairs": 0,
+        "Tables": 1,
+        "Whiteboard": 1,
+        "TV": 0,
+        "Projector": 0,
+        "Powerpoints": 0
+      },
+      "latitude": -37.9144,
+      "longitude": 145.1315
+    },
+    {
+      "name": "55.04.210",
+      "building": "55",
+      "floor": "4",
+      "room_type": "Project Room",
+      "capacity": 6,
+      "features": {
+        "Chairs": 0,
+        "Tables": 1,
+        "Whiteboard": 1,
+        "TV": 0,
+        "Projector": 0,
+        "Powerpoints": 0
+      },
+      "latitude": -37.9144,
+      "longitude": 145.1315
+    },
+    {
+      "name": "72.01.001",
+      "building": "72",
+      "floor": "1",
+      "room_type": "Library Group Study Room",
+      "capacity": 4,
+      "features": {
+        "Chairs": 0,
+        "Tables": 1,
+        "Whiteboard": 1,
+        "TV": 0,
+        "Projector": 0,
+        "Powerpoints": 0
+      },
+      "latitude": -37.9132,
+      "longitude": 145.1342
+    },
+    {
+      "name": "72.01.002",
+      "building": "72",
+      "floor": "1",
+      "room_type": "Library Group Study Room",
+      "capacity": 4,
+      "features": {
+        "Chairs": 0,
+        "Tables": 1,
+        "Whiteboard": 0,
+        "TV": 1,
+        "Projector": 0,
+        "Powerpoints": 0
+      },
+      "latitude": -37.9132,
+      "longitude": 145.1342
+    },
+    {
+      "name": "72.02.007",
+      "building": "72",
+      "floor": "2",
+      "room_type": "Library Group Study Room",
+      "capacity": 6,
+      "features": {
+        "Chairs": 0,
+        "Tables": 0,
+        "Whiteboard": 1,
+        "TV": 1,
+        "Projector": 0,
+        "Powerpoints": 0
+      },
+      "latitude": -37.9132,
+      "longitude": 145.1342
+    }
+  ]
+}

@@ -12,8 +12,9 @@ enum RoomStatus { free, busy, booked }
 // One study room, as sent by the server's /get-rooms endpoint.
 class Room {
   final int id; // the server's id, needed to book it
-  final String name; // e.g. "80.05.003"
-  final String buildingId; // the building's number, e.g. "80"
+  final String name; // e.g. "80.05.003" or "Group Study A"
+  final String buildingId; // the server's id for the building, as text (see Building.id)
+  final String buildingName; // e.g. "Building 80" or "Baillieu Library"
   final int floor;
   final String roomType;
   final int capacity;
@@ -26,6 +27,7 @@ class Room {
     required this.id,
     required this.name,
     required this.buildingId,
+    required this.buildingName,
     required this.floor,
     required this.roomType,
     required this.capacity,
@@ -36,14 +38,18 @@ class Room {
   });
 
   // Turns one room from the server into a Room.
-  // The server identifies buildings by a database id (1, 2, 3...), but the app
-  // uses the building number ("80"), so we're given a lookup from one to the other.
+  // buildingNames maps the server's building ids to their names, e.g. {1: "Building 8"}.
   // availableIds is the set of rooms the database says are available right now.
-  factory Room.fromApi(Map<String, dynamic> json, Map<int, String> buildingNumbers, Set<int> availableIds) {
+  //
+  // Rooms are tied to their building by the server's building id. We don't try
+  // to read a building number out of any name, because not every institution
+  // has numbered buildings or "80.05.003"-style room names.
+  factory Room.fromApi(Map<String, dynamic> json, Map<int, String> buildingNames, Set<int> availableIds) {
     return Room(
       id: json['id'],
       name: json['name'],
-      buildingId: _buildingNumber(json, buildingNumbers),
+      buildingId: '${json['building_id']}',
+      buildingName: buildingNames[json['building_id']] ?? 'Unknown building',
       floor: json['floor'] ?? 0,
       roomType: json['room_type'] ?? '',
       capacity: json['capacity'] ?? 0,
@@ -54,24 +60,17 @@ class Room {
     );
   }
 
-  // Works out the building number ("80") for a room.
-  // RMIT room names start with it ("80.05.003"), so that's tried first. Otherwise
-  // the number is pulled out of the server's building name, so "80",
-  // "Building 80" and "RMIT Building 80" all become "80".
-  static String _buildingNumber(Map<String, dynamic> json, Map<int, String> buildingNames) {
-    final fromRoomName = (json['name'] as String).split('.').first;
-    if (RegExp(r'^\d+$').hasMatch(fromRoomName)) return fromRoomName;
-
-    final buildingName = buildingNames[json['building_id']] ?? '';
-    return RegExp(r'\d+').firstMatch(buildingName)?.group(0) ?? buildingName;
-  }
-
   // "80.05.003" → "Building 80, Level 5, Room 3"
-  String get readableName => 'Building $buildingId, $levelAndRoom';
+  // "Group Study A" → "Baillieu Library, Level 2, Group Study A"
+  String get readableName => '$buildingName, $levelAndRoom';
 
   // "80.05.003" → "Level 5, Room 3" (for lists already grouped by building)
   String get levelAndRoom {
+    // RMIT-style names are building.level.room, like "80.05.003".
     final parts = name.split('.');
+    final rmitStyle = parts.length == 3 && RegExp(r'^\d+$').hasMatch(parts.first);
+    if (!rmitStyle) return 'Level $floor, $name';
+
     // Drop leading zeros: "003" → "3", "003A" → "3A", "101" stays "101"
     final roomNumber = parts.last.replaceFirst(RegExp(r'^0+(?=.)'), '');
     return 'Level $floor, Room $roomNumber';
@@ -141,21 +140,48 @@ Future<List<Room>> _fetchRooms() async {
   final buildingNames = {for (final b in buildings) b['id'] as int: b['name'] as String};
   final rooms = [for (final json in roomsJson) Room.fromApi(json, buildingNames, availableIds)];
 
-  // Turn the server's buildings into Buildings keyed by number ("8"), using the
-  // server's name and position. A building without a position goes in the middle of campus.
+  // Where each building is, for the buildings the server has a position for.
+  final positions = <int, LatLng>{
+    for (final b in buildings)
+      if (b['latitude'] != null && b['longitude'] != null)
+        b['id'] as int: LatLng((b['latitude'] as num).toDouble(), (b['longitude'] as num).toDouble()),
+  };
+
+  // The map opens in the middle of this institution's buildings, whichever
+  // university that is.
+  if (positions.isNotEmpty) campusCentre = centroidOf(positions.values.toList());
+
+  // A building the server has no position for goes in the middle of campus.
   campusBuildings = [
     for (final b in buildings)
       Building(
-        id: _numberIn(b['name'] as String) ?? '${b['id']}',
+        id: '${b['id']}',
         name: b['name'] as String,
-        location: b['latitude'] != null && b['longitude'] != null
-            ? LatLng((b['latitude'] as num).toDouble(), (b['longitude'] as num).toDouble())
-            : campusCentre,
+        location: positions[b['id']] ?? campusCentre,
+        outline: _parseOutline(b['outline']),
       ),
-  ]..sort((a, b) => (int.tryParse(a.id) ?? 0).compareTo(int.tryParse(b.id) ?? 0));
+  ]..sort(_compareBuildings);
 
   return rooms;
 }
 
-// "Building 80" → "80"
-String? _numberIn(String text) => RegExp(r'\d+').firstMatch(text)?.group(0);
+// The server sends an outline as [[latitude, longitude], ...], or null.
+List<LatLng>? _parseOutline(dynamic raw) {
+  if (raw is! List) return null;
+  final points = [
+    for (final p in raw)
+      if (p is List && p.length == 2) LatLng((p[0] as num).toDouble(), (p[1] as num).toDouble()),
+  ];
+  return points.length >= 3 ? points : null;
+}
+
+// Numbered buildings first, in number order ("Building 8" before "Building 10"),
+// then the rest alphabetically.
+int _compareBuildings(Building a, Building b) {
+  final x = int.tryParse(a.number ?? '');
+  final y = int.tryParse(b.number ?? '');
+  if (x != null && y != null && x != y) return x.compareTo(y);
+  if (x != null && y == null) return -1;
+  if (x == null && y != null) return 1;
+  return a.name.compareTo(b.name);
+}
