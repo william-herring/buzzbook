@@ -9,7 +9,8 @@ from sqlalchemy import and_, func, or_
 from sqlalchemy.exc import IntegrityError
 
 from models import *
-from util import haversine_metres, find_current_booking, iso_utc
+from util import haversine_metres, find_current_booking, iso_utc, as_utc
+from scheduler import start_scheduler
 
 app = Flask(__name__)
 app.secret_key = os.getenv('SECRET_KEY')
@@ -24,6 +25,8 @@ with app.app_context():
     db.create_all()
     db.session.commit()
 
+start_scheduler(app)
+
 @app.route('/authenticate', methods=['POST'])
 def authenticate():
     institution_id = request.json.get('institution_id')
@@ -34,7 +37,7 @@ def authenticate():
     if not user or not user.check_password(password):
         return jsonify({'message': 'Invalid Credentials'}), 401
 
-    token = create_access_token(identity=user.id)
+    token = create_access_token(identity=str(user.id))
     print("Valid request for user with id " + str(user.id))
     return jsonify({'access_token': token, 'token_type': 'bearer'}), 200
 
@@ -55,9 +58,12 @@ def get_rooms():
     result = []
 
     for building in buildings:
-        rooms = Room.query.filter_by(building_id=building.id, status=status).all()
+        filters = {'building_id': building.id}
+        if status:
+            filters['status'] = status
+        rooms = Room.query.filter_by(**filters).all()
         for room in rooms:
-            room.append({
+            result.append({
                 'id': room.id,
                 'name': room.name,
                 'building_id': building.id,
@@ -74,7 +80,7 @@ def get_rooms():
                 'longitude': room.longitude,
             })
 
-        return jsonify(result)
+    return jsonify(result)
 
 @app.route('/get-buildings', methods=['GET'])
 @jwt_required()
@@ -148,7 +154,7 @@ def book_room():
     room = Room.query.filter_by(id=data['room_id']).with_for_update().first()
     if not room:
         return jsonify({'message': 'Room not found'}), 404
-    if room.status not in (None, 'available'):
+    if room.status not in (None, 'available', 'occupied'):
         return jsonify({'message': f'Room is not bookable (status: {room.status})'}), 409
 
     overlaps = and_(Booking.start_time < end, Booking.end_time > start)
@@ -180,12 +186,12 @@ def book_room():
         'user_ids': sorted(participant_ids),
     }), 201
 
-@app.route('/room/<room_id>', methods=['GET'])
+@app.route('/room/<int:room_id>', methods=['GET'])
 def get_room(room_id):
     room = Room.query.filter_by(id=room_id).first()
     if not room:
         return jsonify({'message': 'Room not found'}), 404
-    building = Building.query.filter(id=room.building_id) if room.building_id else None
+    building = db.session.get(Building, room.building_id) if room.building_id else None
     data = {
         'id': room.id,
         'name': room.name,
