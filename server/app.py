@@ -192,6 +192,12 @@ def get_room(room_id):
     if not room:
         return jsonify({'message': 'Room not found'}), 404
     building = db.session.get(Building, room.building_id) if room.building_id else None
+    upcoming = (
+        Booking.query
+        .filter(Booking.room_id == room.id, Booking.end_time > datetime.now(timezone.utc))
+        .order_by(Booking.start_time)
+        .all()
+    )
     data = {
         'id': room.id,
         'name': room.name,
@@ -215,6 +221,7 @@ def get_room(room_id):
             'latitude': building.latitude,
             'longitude': building.longitude,
         },
+        'bookings': [b.id for b in upcoming],
     }
 
     return jsonify(data), 200
