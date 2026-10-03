@@ -52,6 +52,8 @@ class BookingStore extends ChangeNotifier {
   void add(Booking booking) {
     bookings.add(booking);
     bookings.sort((a, b) => a.start.compareTo(b.start));
+    // The database has changed, so the next loadRooms() should fetch fresh data.
+    forgetRooms();
     notifyListeners();
   }
 

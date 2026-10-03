@@ -10,6 +10,8 @@ Color statusColor(RoomStatus status) {
       return AppColors.free;
     case RoomStatus.busy:
       return AppColors.booked;
+    case RoomStatus.booked:
+      return AppColors.lilacDark;
   }
 }
 
@@ -90,6 +92,8 @@ class StatusLegend extends StatelessWidget {
         _item('Free', AppColors.free),
         const SizedBox(width: 14),
         _item('Busy now', AppColors.booked),
+        const SizedBox(width: 14),
+        _item('Yours', AppColors.lilacDark),
       ],
     );
   }

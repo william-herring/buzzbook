@@ -50,22 +50,45 @@ class _BookingScreenState extends State<BookingScreen> {
   }
 
   // Slots that have already started can't be booked.
-  // (The server doesn't tell us which times are taken yet. If one is, it
-  // replies with "Room is already booked for that time" when you press Book.)
   bool isPast(int slot) => slotTime(slot).isBefore(DateTime.now());
+
+  // The booking that covers this slot, if the app knows of one.
+  // The server has no endpoint yet that lists a room's bookings, so this only
+  // knows the bookings made in the app (yours, including friends you invited).
+  // Anyone else's booking is still caught by the server when you press Book:
+  // it replies "Room is already booked for that time".
+  Booking? bookingAt(int slot) {
+    final slotStart = slotTime(slot);
+    final slotEnd = slotTime(slot + 1);
+    return BookingStore.instance.bookings
+        .where((b) => b.room.id == widget.room.id && b.start.isBefore(slotEnd) && b.end.isAfter(slotStart))
+        .firstOrNull;
+  }
+
+  bool isBooked(int slot) => bookingAt(slot) != null;
 
   bool isSelected(int slot) {
     if (startSlot == null) return false;
     return slot >= startSlot! && slot <= endSlot!;
   }
 
-  // First tap picks a start time. A second tap on a later slot (within 2 hours)
-  // stretches the booking to that slot.
+  // Tapping a booked (yellow) slot shows who booked it.
+  // Otherwise: the first tap picks a start time, and a second tap on a later slot
+  // (within 2 hours, with nothing booked in between) stretches the booking to it.
   void tapSlot(int slot) {
+    final booking = bookingAt(slot);
+    if (booking != null) {
+      showWhoBooked(booking);
+      return;
+    }
     if (isPast(slot)) return;
     setState(() {
       final start = startSlot;
-      final canExtend = start != null && endSlot == start && slot > start && slot - start < maxSlots;
+      final canExtend = start != null &&
+          endSlot == start &&
+          slot > start &&
+          slot - start < maxSlots &&
+          !List.generate(slot - start, (i) => start + 1 + i).any(isBooked);
       if (canExtend) {
         endSlot = slot;
       } else {
@@ -258,13 +281,48 @@ class _BookingScreenState extends State<BookingScreen> {
     );
   }
 
+  // A panel listing everyone in a booking.
+  void showWhoBooked(Booking booking) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(8))),
+      builder: (context) => Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Booked ${booking.dayLabel}, ${booking.timeLabel}', style: Theme.of(context).textTheme.titleMedium),
+            Text(booking.room.readableName, style: const TextStyle(color: AppColors.grey)),
+            const SizedBox(height: 8),
+            for (final person in ['You', ...booking.invited])
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                dense: true,
+                leading: const CircleAvatar(
+                  radius: 14,
+                  backgroundColor: AppColors.yellow,
+                  child: Icon(Icons.person, size: 16, color: AppColors.ink),
+                ),
+                title: Text(person),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _timeSlot(int slot) {
+    final booked = isBooked(slot);
     final past = isPast(slot);
     final selected = isSelected(slot);
 
     Color background = AppColors.freeLight;
     Color textColor = AppColors.freeDark;
-    if (past) {
+    if (booked) {
+      background = AppColors.yellow;
+      textColor = AppColors.ink;
+    } else if (past) {
       background = AppColors.chip;
       textColor = const Color(0xFFB0B0B0);
     } else if (selected) {
@@ -277,7 +335,7 @@ class _BookingScreenState extends State<BookingScreen> {
       borderRadius: BorderRadius.circular(4),
       child: InkWell(
         borderRadius: BorderRadius.circular(4),
-        onTap: past ? null : () => tapSlot(slot),
+        onTap: past && !booked ? null : () => tapSlot(slot),
         child: Center(
           child: Text(
             slotLabel(slot),

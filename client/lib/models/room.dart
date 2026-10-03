@@ -1,10 +1,13 @@
 import 'package:latlong2/latlong.dart';
 
 import '../util/api.dart';
+import 'booking.dart';
 import 'building.dart';
 
-// Is the room free right now? "busy" covers booked, occupied or closed.
-enum RoomStatus { free, busy }
+// free   = the database says it's available
+// busy   = the database says it isn't (someone's booking is running, or it's closed)
+// booked = you've booked it (shown straight away, before the database catches up)
+enum RoomStatus { free, busy, booked }
 
 // One study room, as sent by the server's /get-rooms endpoint.
 class Room {
@@ -17,7 +20,7 @@ class Room {
   final bool hasTv;
   final bool hasWhiteboard;
   final bool hasProjector;
-  final RoomStatus status;
+  final RoomStatus dbStatus; // what the database said when we last loaded
 
   Room({
     required this.id,
@@ -29,7 +32,7 @@ class Room {
     required this.hasTv,
     required this.hasWhiteboard,
     required this.hasProjector,
-    required this.status,
+    required this.dbStatus,
   });
 
   // Turns one room from the server into a Room.
@@ -47,7 +50,7 @@ class Room {
       hasTv: (json['televisions'] ?? 0) > 0,
       hasWhiteboard: (json['whiteboards'] ?? 0) > 0,
       hasProjector: (json['projectors'] ?? 0) > 0,
-      status: availableIds.contains(json['id']) ? RoomStatus.free : RoomStatus.busy,
+      dbStatus: availableIds.contains(json['id']) ? RoomStatus.free : RoomStatus.busy,
     );
   }
 
@@ -74,12 +77,25 @@ class Room {
     return 'Level $floor, Room $roomNumber';
   }
 
+  // Your booking for this room that hasn't finished yet, if you have one.
+  Booking? get myBooking => BookingStore.instance.bookings
+      .where((b) => b.room.id == id && b.end.isAfter(DateTime.now()))
+      .firstOrNull;
+
+  // The database only marks a room busy once a booking STARTS, so a room you've
+  // just booked for later would still look free. Your own bookings win.
+  RoomStatus get status => myBooking != null ? RoomStatus.booked : dbStatus;
+
   String get statusLabel {
     switch (status) {
       case RoomStatus.free:
         return 'Free';
       case RoomStatus.busy:
         return 'Busy now';
+      case RoomStatus.booked:
+        final booking = myBooking!;
+        final day = booking.dayLabel == 'Today' ? '' : '${booking.dayLabel} ';
+        return 'Booked by you · $day${booking.timeLabel}';
     }
   }
 
@@ -100,6 +116,9 @@ class Room {
 // The result is remembered, so the List and Map tabs share one download.
 // Pass refresh: true to fetch again (e.g. after a "Try again" button).
 Future<List<Room>>? _cachedRooms;
+
+// Throws away the remembered rooms, so the next loadRooms() asks the server again.
+void forgetRooms() => _cachedRooms = null;
 
 Future<List<Room>> loadRooms({bool refresh = false}) {
   if (refresh) _cachedRooms = null;

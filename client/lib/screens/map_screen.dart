@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
+import '../models/booking.dart';
 import '../models/building.dart';
 import '../models/building_outlines.dart';
 import '../models/room.dart';
@@ -37,6 +38,22 @@ class _MapScreenState extends State<MapScreen> {
   void initState() {
     super.initState();
     fetchRooms();
+    BookingStore.instance.addListener(onBookingsChanged);
+  }
+
+  @override
+  void dispose() {
+    BookingStore.instance.removeListener(onBookingsChanged);
+    super.dispose();
+  }
+
+  // Runs whenever a booking is made. The booked room changes straight away
+  // (see Room.status), and fresh statuses are fetched from the database.
+  void onBookingsChanged() {
+    setState(() {});
+    loadRooms().then((rooms) {
+      if (mounted) setState(() => allRooms = rooms);
+    }, onError: (_) {}); // keep showing what we had if the refresh fails
   }
 
   Future<void> fetchRooms({bool refresh = false}) async {

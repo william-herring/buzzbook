@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../models/booking.dart';
 import '../models/building.dart';
 import '../models/room.dart';
 import '../models/room_filters.dart';
@@ -28,6 +29,22 @@ class _RoomsScreenState extends State<RoomsScreen> {
   void initState() {
     super.initState();
     fetchRooms();
+    BookingStore.instance.addListener(onBookingsChanged);
+  }
+
+  @override
+  void dispose() {
+    BookingStore.instance.removeListener(onBookingsChanged);
+    super.dispose();
+  }
+
+  // Runs whenever a booking is made. The booked room changes straight away
+  // (see Room.status), and fresh statuses are fetched from the database.
+  void onBookingsChanged() {
+    setState(() {});
+    loadRooms().then((rooms) {
+      if (mounted) setState(() => allRooms = rooms);
+    }, onError: (_) {}); // keep showing what we had if the refresh fails
   }
 
   Future<void> fetchRooms({bool refresh = false}) async {
