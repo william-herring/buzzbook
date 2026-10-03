@@ -1,14 +1,16 @@
 import functools
 import hmac
+import io
 import json
 import os
+import re
 import secrets
 
-from flask import Response, flash, redirect, render_template_string, request, session, url_for
+from flask import Response, flash, redirect, render_template_string, request, send_file, session, url_for
 from sqlalchemy.exc import IntegrityError
 
 from models import db, Institution, Building, Room, User
-from util import populate_from_data
+from util import generate_room_qr_zip, populate_from_data
 
 PAGE = """
 <!doctype html>
@@ -23,7 +25,9 @@ PAGE = """
     h1 { margin-bottom: 4px; }
     h2 { margin-top: 36px; }
     .card { background: #fff; border-radius: 8px; padding: 16px 20px; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
-    button { background: #512da8; color: #fff; border: 0; border-radius: 4px; padding: 8px 16px; font-size: 15px; cursor: pointer; }
+    button, a.button { background: #512da8; color: #fff; border: 0; border-radius: 4px; padding: 8px 16px; font-size: 15px; cursor: pointer; text-decoration: none; display: inline-block; }
+    .ready { border-left: 4px solid #512da8; margin-top: 16px; }
+    a { color: #512da8; }
     table { width: 100%; border-collapse: collapse; }
     th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid #eee; }
     th { color: #666; font-weight: 600; font-size: 13px; }
@@ -41,6 +45,15 @@ PAGE = """
     <p class="msg {{ category }}">{{ message }}</p>
   {% endfor %}
 
+  {% if ready %}
+  <div class="card ready">
+    <strong>QR codes for {{ ready.name }} are ready.</strong>
+    <p class="hint">One code per room ({{ ready.rooms }} in total), in a folder per building.
+      Print them and stick each one up in its room so students can sign in.</p>
+    <a class="button" href="{{ url_for('admin_qr_codes', institution_id=ready.id) }}">Download QR codes (.zip)</a>
+  </div>
+  {% endif %}
+
   <h2>Add an institution</h2>
   <div class="card">
     <p class="hint">
@@ -57,11 +70,18 @@ PAGE = """
   <div class="card">
     {% if institutions %}
     <table>
-      <tr><th>ID</th><th>Name</th><th>Buildings</th><th>Rooms</th><th>Users</th></tr>
+      <tr><th>ID</th><th>Name</th><th>Buildings</th><th>Rooms</th><th>Users</th><th>Room QR codes</th></tr>
       {% for i in institutions %}
       <tr>
         <td>{{ i.id }}</td><td>{{ i.name }}</td>
         <td>{{ i.buildings }}</td><td>{{ i.rooms }}</td><td>{{ i.users }}</td>
+        <td>
+          {% if i.rooms %}
+            <a href="{{ url_for('admin_qr_codes', institution_id=i.id) }}">Download .zip</a>
+          {% else %}
+            <span class="hint">No rooms</span>
+          {% endif %}
+        </td>
       </tr>
       {% endfor %}
     </table>
@@ -123,7 +143,33 @@ def register_admin(app):
     @admin_required
     def admin_home():
         csrf = session.setdefault('csrf', secrets.token_hex(16))
-        return render_template_string(PAGE, csrf=csrf, institutions=institution_rows())
+        rows = institution_rows()
+        # After an upload we come back here with ?ready=<id> to offer its QR codes.
+        ready_id = request.args.get('ready', type=int)
+        ready = next((r for r in rows if r['id'] == ready_id and r['rooms']), None)
+        return render_template_string(PAGE, csrf=csrf, institutions=rows, ready=ready)
+
+    @app.route('/admin/institutions/<int:institution_id>/qr-codes.zip', methods=['GET'])
+    @admin_required
+    def admin_qr_codes(institution_id):
+        institution = db.session.get(Institution, institution_id)
+        if institution is None:
+            flash('That institution no longer exists.', 'error')
+            return redirect(url_for('admin_home'))
+
+        # Built fresh from the database on every download, so it always matches
+        # the institution's current rooms (e.g. after an update added some).
+        buffer = io.BytesIO()
+        try:
+            generate_room_qr_zip(institution.id, buffer)
+        except ValueError:
+            flash(f'{institution.name} has no rooms yet, so there are no QR codes to download.', 'error')
+            return redirect(url_for('admin_home'))
+        buffer.seek(0)
+
+        slug = re.sub(r'[^a-z0-9]+', '-', institution.name.lower()).strip('-') or 'institution'
+        return send_file(buffer, mimetype='application/zip', as_attachment=True,
+                         download_name=f'{slug}-room-qr-codes.zip')
 
     @app.route('/admin/upload', methods=['POST'])
     @admin_required
@@ -161,5 +207,8 @@ def register_admin(app):
             verb = 'Created' if counts['institutions'] else 'Updated'
             detail = f'added {added}.' if added else 'nothing new to add.'
             flash(f"{verb} {data['name']}: {detail}", 'ok')
+            institution = Institution.query.filter_by(name=data['name']).first()
+            if institution is not None:
+                return redirect(url_for('admin_home', ready=institution.id))
 
         return redirect(url_for('admin_home'))

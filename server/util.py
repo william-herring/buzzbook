@@ -1,10 +1,12 @@
 import json
 import io
+import re
 import zipfile
 from datetime import timezone
 from math import radians, sin, asin, sqrt, cos
 
 import qrcode
+from PIL import Image, ImageDraw, ImageFont
 from qrcode.constants import ERROR_CORRECT_M
 
 from models import db, Institution, Building, Room, User, Booking
@@ -155,11 +157,42 @@ def generate_room_qr_zip(institution_id, output_path, prefix=DEFAULT_PREFIX):
             qr.add_data(f"{prefix}{room.id}")
             qr.make(fit=True)
 
+            image = _with_caption(
+                qr.make_image(fill_color="black", back_color="white").get_image(),
+                f"{building_name} · {room.name}",
+            )
             buffer = io.BytesIO()
-            qr.make_image(fill_color="black", back_color="white").save(buffer, format="PNG")
-            archive.writestr(f"{building_name}/{room.name}.png", buffer.getvalue())
+            image.save(buffer, format="PNG")
+            archive.writestr(
+                f"{_safe_filename(building_name)}/{_safe_filename(room.name)}.png",
+                buffer.getvalue(),
+            )
 
     return len(rooms)
+
+
+def _with_caption(qr_image, caption):
+    # Prints the room under its QR code, so a sheet of printed codes can be told apart.
+    qr_image = qr_image.convert("RGB")
+    try:
+        font = ImageFont.load_default(size=32)
+    except TypeError:  # Pillow older than 10.1 has one fixed-size font
+        font = ImageFont.load_default()
+    width, height = qr_image.size
+    left, top, right, bottom = ImageDraw.Draw(qr_image).textbbox((0, 0), caption, font=font)
+    canvas = Image.new("RGB", (max(width, right - left + 40), height + (bottom - top) + 30), "white")
+    canvas.paste(qr_image, ((canvas.width - width) // 2, 0))
+    ImageDraw.Draw(canvas).text(
+        ((canvas.width - (right - left)) // 2, height - top), caption, fill="black", font=font
+    )
+    return canvas
+
+
+def _safe_filename(name):
+    # Building and room names become folder and file names in the zip; strip the
+    # characters Windows and macOS don't allow in file names.
+    cleaned = re.sub(r'[<>:"/\\|?*\x00-\x1f]', "-", str(name)).strip(" .")
+    return cleaned or "unnamed"
 
 def iso_utc(dt):
     if dt.tzinfo is None:
