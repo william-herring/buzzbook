@@ -1,3 +1,5 @@
+import 'package:client/screens/map_screen.dart';
+import 'package:client/screens/rooms_screen.dart';
 import 'package:flutter/material.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -12,8 +14,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // Replace these placeholders with your real pages.
   late final List<Widget> _tabs = const [
-    _PlaceholderTab(label: 'List', icon: Icons.list),
-    _PlaceholderTab(label: 'Map', icon: Icons.map),
+    RoomsScreen(),
+    MapScreen(),
     _PlaceholderTab(label: 'Me', icon: Icons.person),
   ];
 
