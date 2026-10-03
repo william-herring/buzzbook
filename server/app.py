@@ -178,3 +178,36 @@ def book_room():
         'end_time': end.isoformat(),
         'user_ids': sorted(participant_ids),
     }), 201
+
+@app.route('/room/<room_id>', methods=['GET'])
+def get_room(room_id):
+    room = Room.query.filter_by(id=room_id).first()
+    if not room:
+        return jsonify({'message': 'Room not found'}), 404
+    building = Building.query.filter(id=room.building_id) if room.building_id else None
+    data = {
+        'id': room.id,
+        'name': room.name,
+        'status': room.status,
+        'floor': room.floor,
+        'room_type': room.room_type,
+        'capacity': room.capacity,
+        'latitude': room.latitude,
+        'longitude': room.longitude,
+        'features': {
+            'chairs': room.chairs,
+            'tables': room.tables,
+            'whiteboards': room.whiteboards,
+            'televisions': room.televisions,
+            'projectors': room.projectors,
+            'powerpoints': room.powerpoints,
+        },
+        'building': None if building is None else {
+            'id': building.id,
+            'name': building.name,
+            'latitude': building.latitude,
+            'longitude': building.longitude,
+        },
+    }
+
+    return jsonify(data), 200
