@@ -20,6 +20,16 @@ FEATURE_COLUMNS = {
 
 DEFAULT_PREFIX = "buzzbook://room/"
 
+FEATURE_COLUMNS = {
+    "Chairs": "chairs",
+    "Tables": "tables",
+    "Whiteboard": "whiteboards",
+    "TV": "televisions",
+    "Projector": "projectors",
+    "Powerpoints": "powerpoints",
+}
+
+
 def _get_or_create(model, lookup, **values):
     obj = model.query.filter_by(**lookup).first()
     created = obj is None
@@ -35,6 +45,15 @@ def populate_from_file(path):
     with open(path, encoding="utf-8") as f:
         data = json.load(f)
 
+    for key in ("name", "buildings", "users", "rooms"):
+        if key not in data:
+            raise ValueError(f"'{key}' missing from {path}")
+
+    building_defs = {str(b["building_id"]): b for b in data["buildings"]}
+    undefined = sorted({str(r["building"]) for r in data["rooms"]} - building_defs.keys())
+    if undefined:
+        raise ValueError(f"Rooms reference undefined buildings: {', '.join(undefined)}")
+
     counts = {"institutions": 0, "buildings": 0, "rooms": 0, "users": 0}
 
     try:
@@ -48,36 +67,40 @@ def populate_from_file(path):
         counts["institutions"] += created
 
         buildings = {}
-        for room in data["rooms"]:
-            name = str(room["building"])
-            if name not in buildings:
-                buildings[name], created = _get_or_create(
-                    Building, {"institution_id": institution.id, "name": name}
-                )
-                counts["buildings"] += created
+        for building_id, b in building_defs.items():
+            buildings[building_id], created = _get_or_create(
+                Building,
+                {"institution_id": institution.id, "name": b["name"]},
+                latitude=b.get("latitude"),
+                longitude=b.get("longitude"),
+            )
+            counts["buildings"] += created
         db.session.flush()
 
         for room in data["rooms"]:
+            building = buildings[str(room["building"])]
             features = room.get("features", {})
             _, created = _get_or_create(
                 Room,
-                {"building_id": buildings[str(room["building"])].id, "name": room["name"]},
+                {"building_id": building.id, "name": room["name"]},
                 floor=int(room["floor"]),
                 room_type=room.get("room_type"),
                 capacity=room.get("capacity", 0),
+                latitude=room.get("latitude", building.latitude),
+                longitude=room.get("longitude", building.longitude),
                 **{col: features.get(key, 0) for key, col in FEATURE_COLUMNS.items()},
             )
             counts["rooms"] += created
 
-        for student in data["students"]:
+        for u in data["users"]:
             user, created = _get_or_create(
                 User,
-                {"student_id": student["student_id"]},
+                {"student_id": u["student_id"]},
                 institution_id=institution.id,
-                email=student["email"],
+                email=u["email"],
             )
             if created:
-                user.set_password(student["password"])
+                user.set_password(u["password"])
             counts["users"] += created
 
         db.session.commit()
@@ -111,7 +134,6 @@ def generate_room_qr_zip(institution_id, output_path, prefix=DEFAULT_PREFIX):
             archive.writestr(f"{building_name}/{room.name}.png", buffer.getvalue())
 
     return len(rooms)
-
 
 def iso_utc(dt):
     if dt.tzinfo is None:
