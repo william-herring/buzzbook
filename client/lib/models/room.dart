@@ -1,7 +1,10 @@
-import '../util/api.dart';
+import 'package:latlong2/latlong.dart';
 
-// Can the room be booked right now?
-enum RoomStatus { free, occupied, unavailable }
+import '../util/api.dart';
+import 'building.dart';
+
+// Is the room free right now? "busy" covers booked, occupied or closed.
+enum RoomStatus { free, busy }
 
 // One study room, as sent by the server's /get-rooms endpoint.
 class Room {
@@ -33,10 +36,6 @@ class Room {
   // The server identifies buildings by a database id (1, 2, 3...), but the app
   // uses the building number ("80"), so we're given a lookup from one to the other.
   factory Room.fromApi(Map<String, dynamic> json, Map<int, String> buildingNumbers) {
-    RoomStatus status = RoomStatus.free;
-    if (json['occupied_now'] == true) status = RoomStatus.occupied;
-    if (json['status'] != null && json['status'] != 'available') status = RoomStatus.unavailable;
-
     return Room(
       id: json['id'],
       name: json['name'],
@@ -47,7 +46,9 @@ class Room {
       hasTv: (json['televisions'] ?? 0) > 0,
       hasWhiteboard: (json['whiteboards'] ?? 0) > 0,
       hasProjector: (json['projectors'] ?? 0) > 0,
-      status: status,
+      // The server doesn't tell us yet whether a room is free right now,
+      // so every room shows as free for the moment.
+      status: RoomStatus.free,
     );
   }
 
@@ -78,10 +79,8 @@ class Room {
     switch (status) {
       case RoomStatus.free:
         return 'Free';
-      case RoomStatus.occupied:
-        return 'In use';
-      case RoomStatus.unavailable:
-        return 'Unavailable';
+      case RoomStatus.busy:
+        return 'Busy now';
     }
   }
 
@@ -117,9 +116,27 @@ Future<List<Room>> _fetchRooms() async {
   // Ask for both lists at the same time, then wait for both.
   final results = await Future.wait([Api.getBuildings(), Api.getRooms()]);
   final buildings = results[0];
-  final rooms = results[1];
+  final roomsJson = results[1];
 
-  // e.g. {1: "8", 2: "10", ...}
-  final buildingNumbers = {for (final b in buildings) b['id'] as int: b['name'] as String};
-  return rooms.map((json) => Room.fromApi(json, buildingNumbers)).toList();
+  // e.g. {1: "Building 8", 2: "Building 10", ...}
+  final buildingNames = {for (final b in buildings) b['id'] as int: b['name'] as String};
+  final rooms = [for (final json in roomsJson) Room.fromApi(json, buildingNames)];
+
+  // Turn the server's buildings into Buildings keyed by number ("8"), using the
+  // server's name and position. A building without a position goes in the middle of campus.
+  campusBuildings = [
+    for (final b in buildings)
+      Building(
+        id: _numberIn(b['name'] as String) ?? '${b['id']}',
+        name: b['name'] as String,
+        location: b['latitude'] != null && b['longitude'] != null
+            ? LatLng((b['latitude'] as num).toDouble(), (b['longitude'] as num).toDouble())
+            : campusCentre,
+      ),
+  ]..sort((a, b) => (int.tryParse(a.id) ?? 0).compareTo(int.tryParse(b.id) ?? 0));
+
+  return rooms;
 }
+
+// "Building 80" → "80"
+String? _numberIn(String text) => RegExp(r'\d+').firstMatch(text)?.group(0);

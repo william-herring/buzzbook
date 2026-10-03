@@ -25,9 +25,22 @@ class Api {
     return await _get('/get-buildings') as List<dynamic>;
   }
 
-  // GET /get-rooms → [{id, name, building_id, status, occupied_now, floor, ...}, ...]
+  // GET /get-rooms → [{id, name, building_id, floor, capacity, televisions, ...}, ...]
   static Future<List<dynamic>> getRooms() async {
     return await _get('/get-rooms') as List<dynamic>;
+  }
+
+  // POST /add-to-booking → {message, booking_id, users: [{id, student_id}, ...]}
+  // Returns the student IDs of everyone now in the booking.
+  static Future<List<String>> addToBooking({required int bookingId, required String studentId}) async {
+    final headers = await _authHeaders();
+    final response = await _send(() => http.post(
+          Uri.parse('$apiBaseUrl/add-to-booking'),
+          headers: headers,
+          body: jsonEncode({'booking_id': bookingId, 'invited_user_id': studentId}),
+        ));
+    final users = jsonDecode(response.body)['users'] as List<dynamic>;
+    return [for (final user in users) user['student_id'] as String];
   }
 
   // POST /book-room → {booking_id, room_id, start_time, end_time, user_ids}

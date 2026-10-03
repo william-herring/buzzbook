@@ -54,12 +54,12 @@ class _RoomsScreenState extends State<RoomsScreen> {
   Widget build(BuildContext context) {
     // Build the list one section at a time: a heading per building,
     // then that building's rooms that pass the filters.
-    // Buildings we know about first (in map order), then any other building
-    // the server sent rooms for, so no room is ever silently left out.
+    // The server's buildings, then any other building number the rooms
+    // mention, so no room is ever silently left out.
     final buildingIds = [
-      for (final b in rmitBuildings) b.id,
+      for (final b in campusBuildings) b.id,
       for (final id in allRooms.map((r) => r.buildingId).toSet())
-        if (!rmitBuildings.any((b) => b.id == id)) id,
+        if (!campusBuildings.any((b) => b.id == id)) id,
     ];
     final listItems = <Widget>[];
     for (final building in buildingIds.map(findBuilding)) {
@@ -132,14 +132,15 @@ class _RoomsScreenState extends State<RoomsScreen> {
   }
 
   Widget _buildingMenu() {
-    final label = filters.buildingId == null ? 'All buildings' : 'Building ${filters.buildingId}';
-    return PopupMenuButton<String?>(
+    final label = filters.buildingId == null ? 'All buildings' : findBuilding(filters.buildingId!).name;
+    // Note: a menu item's value can't be null (Flutter treats picking a null item
+    // as "cancelled" and never calls onSelected), so '' means "all buildings".
+    return PopupMenuButton<String>(
       tooltip: 'Choose a building',
-      onSelected: (id) => setState(() => filters.buildingId = id),
+      onSelected: (id) => setState(() => filters.buildingId = id.isEmpty ? null : id),
       itemBuilder: (context) => [
-        const PopupMenuItem(value: null, child: Text('All buildings')),
-        for (final b in rmitBuildings)
-          PopupMenuItem(value: b.id, child: Text('Building ${b.id} · ${b.name}')),
+        const PopupMenuItem(value: '', child: Text('All buildings')),
+        for (final b in campusBuildings) PopupMenuItem(value: b.id, child: Text(b.name)),
       ],
       child: Chip(
         label: Row(
@@ -170,11 +171,9 @@ class _RoomsScreenState extends State<RoomsScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
         children: [
-          Text('Building ${building.id}', style: const TextStyle(fontWeight: FontWeight.w600)),
-          const SizedBox(width: 8),
           Expanded(
             child: Text(building.name,
-                overflow: TextOverflow.ellipsis, style: const TextStyle(color: AppColors.grey)),
+                overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w600)),
           ),
           Text('$count ${count == 1 ? 'room' : 'rooms'}',
               style: const TextStyle(color: AppColors.grey, fontSize: 13)),

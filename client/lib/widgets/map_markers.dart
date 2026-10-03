@@ -8,9 +8,7 @@ Color statusColor(RoomStatus status) {
   switch (status) {
     case RoomStatus.free:
       return AppColors.free;
-    case RoomStatus.occupied:
-      return AppColors.soon;
-    case RoomStatus.unavailable:
+    case RoomStatus.busy:
       return AppColors.booked;
   }
 }
@@ -81,7 +79,7 @@ class RoomPin extends StatelessWidget {
   }
 }
 
-// The little "● Free  ● In use  ● Unavailable" key.
+// The little "● Free  ● Busy now" key.
 class StatusLegend extends StatelessWidget {
   const StatusLegend({super.key});
 
@@ -91,9 +89,7 @@ class StatusLegend extends StatelessWidget {
       children: [
         _item('Free', AppColors.free),
         const SizedBox(width: 14),
-        _item('In use', AppColors.soon),
-        const SizedBox(width: 14),
-        _item('Unavailable', AppColors.booked),
+        _item('Busy now', AppColors.booked),
       ],
     );
   }

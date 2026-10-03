@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../models/booking.dart';
-import '../models/building.dart';
 import '../models/room.dart';
 import '../theme/colors.dart';
 import '../util/api.dart';
@@ -127,7 +126,6 @@ class _BookingScreenState extends State<BookingScreen> {
   @override
   Widget build(BuildContext context) {
     final room = widget.room;
-    final building = findBuilding(room.buildingId);
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -142,7 +140,6 @@ class _BookingScreenState extends State<BookingScreen> {
                   // Room heading
                   Text(room.readableName, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700)),
                   const SizedBox(height: 4),
-                  Text(building.name, style: const TextStyle(fontSize: 15, color: AppColors.grey)),
                   const SizedBox(height: 6),
                   Text(room.featureSummary, style: const TextStyle(fontSize: 15)),
                   Text(room.roomType, style: const TextStyle(fontSize: 13, color: AppColors.grey)),

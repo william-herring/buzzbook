@@ -23,8 +23,6 @@ class MapScreen extends StatefulWidget {
 }
 
 class _MapScreenState extends State<MapScreen> {
-  static const campusCentre = LatLng(-37.8076, 144.9634);
-
   final mapController = MapController();
   final filters = RoomFilters();
 
@@ -57,9 +55,22 @@ class _MapScreenState extends State<MapScreen> {
     return filters.sorted(matching);
   }
 
+  // Where to put a building's label and room pins.
+  // If we have its outline, use the middle of the outline so everything sits on
+  // the shape. Otherwise use the position from the server.
+  // (The server's positions are a little off for some buildings, so they don't
+  // always line up with the outlines.)
+  LatLng spotFor(Building building) {
+    final outline = buildingOutlines[building.id];
+    if (outline == null) return building.location;
+    final lat = outline.map((p) => p.latitude).reduce((a, b) => a + b) / outline.length;
+    final lng = outline.map((p) => p.longitude).reduce((a, b) => a + b) / outline.length;
+    return LatLng(lat, lng);
+  }
+
   void selectBuilding(Building building) {
     setState(() => selectedBuilding = building);
-    mapController.move(building.location, 19); // zoom in on it
+    mapController.move(spotFor(building), 19); // zoom in on it
   }
 
   // Zoom in or out by one step, keeping the same centre.
@@ -179,7 +190,8 @@ class _MapScreenState extends State<MapScreen> {
         child: PolygonLayer<String>(
           hitNotifier: buildingHit,
           polygons: [
-            for (final building in rmitBuildings)
+            // Only buildings we have an outline shape for (see building_outlines.dart).
+            for (final building in campusBuildings.where((b) => buildingOutlines.containsKey(b.id)))
               Polygon<String>(
                 points: buildingOutlines[building.id]!,
                 hitValue: building.id, // what buildingHit reports when this shape is tapped
@@ -220,10 +232,10 @@ class _MapScreenState extends State<MapScreen> {
   // One marker per building, showing how many matching rooms are free.
   List<Marker> buildingMarkers() {
     return [
-      for (final building in rmitBuildings)
+      for (final building in campusBuildings)
         if (building != selectedBuilding) // the selected one is replaced by its room pins
           Marker(
-            point: building.location,
+            point: spotFor(building),
             width: 52,
             height: 44,
             child: GestureDetector(
@@ -259,9 +271,9 @@ class _MapScreenState extends State<MapScreen> {
 
     final markers = <Marker>[];
     for (var row = 0; row < rows.length; row++) {
-      final lat = building.location.latitude + (rows.length / 2 - row - 0.5) * latStep;
+      final lat = spotFor(building).latitude + (rows.length / 2 - row - 0.5) * latStep;
       for (var col = 0; col < rows[row].length; col++) {
-        final lng = building.location.longitude + (col - (rows[row].length - 1) / 2) * lngStep;
+        final lng = spotFor(building).longitude + (col - (rows[row].length - 1) / 2) * lngStep;
         final room = rows[row][col];
         markers.add(
           Marker(

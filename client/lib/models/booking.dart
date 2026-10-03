@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 
+import '../util/api.dart';
 import 'room.dart';
 
 // One booking the user has made.
@@ -54,14 +55,18 @@ class BookingStore extends ChangeNotifier {
     notifyListeners();
   }
 
-  // These only change the app's copy: the server can't edit invites yet.
-  void addInvite(Booking booking, String studentId) {
-    booking.invited.add(studentId);
-    notifyListeners();
-  }
-
-  void removeInvite(Booking booking, String studentId) {
-    booking.invited.remove(studentId);
+  // Adds a friend to the booking on the server (/add-to-booking), then updates
+  // the app's copy. Throws an ApiException with the server's reason if it fails,
+  // e.g. "Student S123 not found" or "Room is at capacity (5)".
+  // (There's no server endpoint to REMOVE someone from a booking yet.)
+  Future<void> addInvite(Booking booking, String studentId) async {
+    final everyone = await Api.addToBooking(bookingId: booking.id, studentId: studentId);
+    // The server sends back everyone in the booking. Use its spelling of the new ID.
+    final added = everyone.firstWhere(
+      (id) => id.toLowerCase() == studentId.toLowerCase(),
+      orElse: () => studentId,
+    );
+    if (!booking.invited.contains(added)) booking.invited.add(added);
     notifyListeners();
   }
 }
