@@ -1,14 +1,19 @@
-// import 'package:client/screens/login.dart';
-import 'package:client/screens/app_shell.dart';
+import 'package:client/screens/home.dart';
+import 'package:client/screens/login.dart';
 import 'package:client/theme/theme.dart';
+import 'package:client/util/auth_storage.dart';
 import 'package:flutter/material.dart';
 
-void main() {
-  runApp(const App());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final hasToken = await AuthStorage.readToken() != null;
+  runApp(App(startLoggedIn: hasToken));
 }
 
 class App extends StatelessWidget {
-  const App({super.key});
+  final bool startLoggedIn;
+
+  const App({super.key, required this.startLoggedIn});
 
   @override
   Widget build(BuildContext context) {
@@ -16,10 +21,11 @@ class App extends StatelessWidget {
       title: 'Buzzbook',
       theme: AppTheme.theme,
       debugShowCheckedModeBanner: false,
-      // TEMPORARY: skip login while the server isn't connected.
-      // Switch back to LoginScreen (and un-comment its import) when it is.
-      // home: const LoginScreen(),
-      home: const AppShell(),
+      home: startLoggedIn ? const HomeScreen() : const LoginScreen(),
+      routes: {
+        "/home": (_) => const HomeScreen(),
+      },
     );
   }
 }
+

@@ -6,6 +6,7 @@ import 'package:client/pages/select_institution.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
+import '../util/auth_storage.dart';
 import 'home.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -97,8 +98,10 @@ class _LoginScreenState extends State<LoginScreen> {
 
       if (response.statusCode == 200) {
         final token = jsonDecode(response.body)['access_token'] as String;
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => HomeScreen(accessToken: token)),
+        await AuthStorage.saveToken(token);
+        if (!mounted) return;
+        Navigator.of(context).pushReplacementNamed(
+          "/home"
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
