@@ -1,5 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
+from sqlalchemy import CheckConstraint
 
 db = SQLAlchemy()
 
@@ -32,6 +33,7 @@ class Room(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String)
     building_id = db.Column(db.Integer, db.ForeignKey('building.id'))
+    status = db.Column(db.String, default='available')
     floor = db.Column(db.Integer)
     room_type = db.Column(db.String)
     capacity = db.Column(db.Integer)
@@ -43,3 +45,22 @@ class Room(db.Model):
     powerpoints = db.Column(db.Integer)
     latitude = db.Column(db.Float)
     longitude = db.Column(db.Float)
+
+booking_users = db.Table(
+    'booking_users',
+    db.Column('booking_id', db.Integer, db.ForeignKey('booking.id', ondelete='CASCADE'), primary_key=True),
+    db.Column('user_id', db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), primary_key=True),
+)
+
+class Booking(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    room_id = db.Column(db.Integer, db.ForeignKey('room.id'), nullable=False, index=True)
+    start_time = db.Column(db.DateTime(timezone=True), nullable=False)
+    end_time = db.Column(db.DateTime(timezone=True), nullable=False)
+
+    room = db.relationship('Room', backref=db.backref('bookings', lazy=True))
+    users = db.relationship('User', secondary=booking_users, backref=db.backref('bookings', lazy=True))
+
+    __table_args__ = (
+        CheckConstraint('end_time > start_time', name='booking_end_after_start'),
+    )
