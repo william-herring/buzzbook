@@ -223,7 +223,8 @@ def get_room_id_arg():
 @app.route('/room-sign-in', methods=['POST'])
 @jwt_required()
 def room_sign_in():
-    user = db.session.get(User, int(get_jwt_identity()))
+    user_id = get_jwt_identity()
+    user = User.query.filter_by(id=user_id).first()
     if not user:
         return jsonify({'message': 'User not found'}), 401
 
@@ -254,7 +255,8 @@ def room_sign_in():
 @app.route('/room-sign-out', methods=['POST'])
 @jwt_required()
 def room_sign_out():
-    user = db.session.get(User, int(get_jwt_identity()))
+    user_id = get_jwt_identity()
+    user = User.query.filter_by(id=user_id).first()
     if not user:
         return jsonify({'message': 'User not found'}), 401
 
@@ -287,7 +289,8 @@ def room_sign_out():
 @app.route('/rooms-near-me', methods=['GET'])
 @jwt_required()
 def get_rooms_near_me():
-    user = db.session.get(User, int(get_jwt_identity()))
+    user_id = get_jwt_identity()
+    user = User.query.filter_by(id=user_id).first()
     if not user:
         return jsonify({'message': 'User not found'}), 401
 
@@ -338,3 +341,56 @@ def get_rooms_near_me():
 
     results.sort(key=lambda r: r['distance_metres'])
     return jsonify(results), 200
+
+
+@app.route('/add-to-booking', methods=['POST'])
+@jwt_required()
+def add_to_booking():
+    user_id = get_jwt_identity()
+    user = User.query.filter_by(id=user_id).first()
+    if not user:
+        return jsonify({'message': 'User not found'}), 401
+
+    data = request.get_json(silent=True) or {}
+    booking_id = data.get('booking_id')
+    invited_student_id = data.get('invited_user_id')
+    if not isinstance(booking_id, int) or not isinstance(invited_student_id, str) \
+            or not invited_student_id.strip():
+        return jsonify({'message': 'booking_id (integer) and invited_user_id '
+                                   '(student ID string) are required'}), 400
+
+    booking = Booking.query.filter_by(id=booking_id).with_for_update().first()
+    if not booking:
+        return jsonify({'message': 'Booking not found'}), 404
+    if user not in booking.users:
+        return jsonify({'message': 'You are not part of this booking'}), 403
+    if as_utc(booking.end_time) <= datetime.now(timezone.utc):
+        return jsonify({'message': 'This booking has already ended'}), 409
+
+    invited = User.query.filter(
+        func.lower(User.student_id) == invited_student_id.strip().lower()
+    ).first()
+    if not invited:
+        return jsonify({'message': f'Student {invited_student_id.strip()} not found'}), 404
+    if invited in booking.users:
+        return jsonify({'message': f'{invited.student_id} is already in this booking'}), 409
+
+    room = db.session.get(Room, booking.room_id)
+    if room and room.capacity and len(booking.users) >= room.capacity:
+        return jsonify({'message': f'Room is at capacity ({room.capacity})'}), 409
+
+    clash = Booking.query.filter(
+        Booking.users.any(User.id == invited.id),
+        and_(Booking.start_time < booking.end_time, Booking.end_time > booking.start_time),
+    ).first()
+    if clash:
+        return jsonify({'message': f'{invited.student_id} is already booked at that time'}), 409
+
+    booking.users.append(invited)
+    db.session.commit()
+
+    return jsonify({
+        'message': f'{invited.student_id} added to booking',
+        'booking_id': booking.id,
+        'users': [{'id': u.id, 'student_id': u.student_id} for u in booking.users],
+    }), 200
