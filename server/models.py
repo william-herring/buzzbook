@@ -1,3 +1,5 @@
+from datetime import datetime, timezone
+
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import CheckConstraint
@@ -65,3 +67,9 @@ class Booking(db.Model):
     __table_args__ = (
         CheckConstraint('end_time > start_time', name='booking_end_after_start'),
     )
+
+class TokenBlocklist(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    jti = db.Column(db.String(36), nullable=False, unique=True, index=True)
+    created_at = db.Column(db.DateTime(timezone=True), nullable=False,
+                           default=lambda: datetime.now(timezone.utc))

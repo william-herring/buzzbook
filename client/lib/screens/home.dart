@@ -1,4 +1,6 @@
 import 'package:client/screens/map_screen.dart';
+import 'package:client/screens/me_screen.dart';
+import 'package:client/screens/qr_scanner_screen.dart';
 import 'package:client/screens/rooms_screen.dart';
 import 'package:flutter/material.dart';
 
@@ -12,17 +14,15 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
 
-  // Replace these placeholders with your real pages.
   late final List<Widget> _tabs = const [
     RoomsScreen(),
     MapScreen(),
-    _PlaceholderTab(label: 'Me', icon: Icons.person),
+    MeScreen(),
   ];
 
   void _onScanQr() {
-    // TODO: open QR scanner (e.g. with the mobile_scanner package).
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('QR scanner coming soon')),
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const QrScannerScreen()),
     );
   }
 
@@ -59,27 +59,6 @@ class _HomeScreenState extends State<HomeScreen> {
             selectedIcon: Icon(Icons.person),
             label: 'Me',
           ),
-        ],
-      ),
-    );
-  }
-}
-
-class _PlaceholderTab extends StatelessWidget {
-  const _PlaceholderTab({required this.label, required this.icon});
-
-  final String label;
-  final IconData icon;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 48),
-          const SizedBox(height: 8),
-          Text(label, style: Theme.of(context).textTheme.titleLarge),
         ],
       ),
     );

@@ -2,7 +2,7 @@ import os
 from datetime import datetime, timezone
 
 from flask import Flask, request, jsonify
-from flask_jwt_extended import create_access_token, JWTManager, jwt_required, get_jwt_identity
+from flask_jwt_extended import create_access_token, JWTManager, jwt_required, get_jwt_identity, get_jwt
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import and_, func, or_
@@ -10,7 +10,7 @@ from sqlalchemy.exc import IntegrityError
 
 from models import *
 from util import haversine_metres, find_current_booking, iso_utc, as_utc
-from scheduler import start_scheduler
+from scheduler import start_scheduler, NO_SHOW_GRACE
 
 app = Flask(__name__)
 app.secret_key = os.getenv('SECRET_KEY')
@@ -26,6 +26,10 @@ with app.app_context():
     db.session.commit()
 
 start_scheduler(app)
+
+@jwt.token_in_blocklist_loader
+def is_token_revoked(jwt_header, jwt_payload):
+    return TokenBlocklist.query.filter_by(jti=jwt_payload['jti']).first() is not None
 
 @app.route('/authenticate', methods=['POST'])
 def authenticate():
@@ -411,4 +415,62 @@ def add_to_booking():
         'message': f'{invited.student_id} added to booking',
         'booking_id': booking.id,
         'users': [{'id': u.id, 'student_id': u.student_id} for u in booking.users],
+    }), 200
+
+
+@app.route('/logout', methods=['POST'])
+@jwt_required()
+def logout():
+    db.session.add(TokenBlocklist(jti=get_jwt()['jti']))
+    db.session.commit()
+    return jsonify({'message': 'Logged out'}), 200
+
+
+@app.route('/me', methods=['GET'])
+@jwt_required()
+def me():
+    user = db.session.get(User, int(get_jwt_identity()))
+    if not user:
+        return jsonify({'message': 'User not found'}), 401
+
+    institution = db.session.get(Institution, user.institution_id) if user.institution_id else None
+    return jsonify({
+        'id': user.id,
+        'student_id': user.student_id,
+        'email': user.email,
+        'institution': None if institution is None else {
+            'id': institution.id,
+            'name': institution.name,
+        },
+    }), 200
+
+
+@app.route('/room-booking-status', methods=['GET'])
+@jwt_required()
+def room_booking_status():
+    user = db.session.get(User, int(get_jwt_identity()))
+    if not user:
+        return jsonify({'message': 'User not found'}), 401
+
+    room_id = get_room_id_arg()
+    if room_id is None:
+        return jsonify({'message': 'room_id must be an integer'}), 400
+
+    room = db.session.get(Room, room_id)
+    if not room:
+        return jsonify({'message': 'Room not found'}), 404
+
+    now = datetime.now(timezone.utc)
+    booking = find_current_booking(user.id, room.id, now)
+    if booking and not room.occupied_now and now >= as_utc(booking.start_time) + NO_SHOW_GRACE:
+        booking = None
+
+    return jsonify({
+        'room': {'id': room.id, 'name': room.name},
+        'booking': None if booking is None else {
+            'id': booking.id,
+            'start_time': iso_utc(booking.start_time),
+            'end_time': iso_utc(booking.end_time),
+            'signed_in': bool(room.occupied_now),
+        },
     }), 200

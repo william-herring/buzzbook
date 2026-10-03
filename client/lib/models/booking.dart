@@ -83,6 +83,14 @@ class BookingStore extends ChangeNotifier {
     notifyListeners();
   }
 
+  // Forgets everything. Used when logging out, so the next person to log in
+  // on this device doesn't see the previous user's bookings.
+  void clear() {
+    bookings.clear();
+    forgetRooms();
+    notifyListeners();
+  }
+
   // Adds a friend to the booking on the server (/add-to-booking), then updates
   // the app's copy. Throws an ApiException with the server's reason if it fails,
   // e.g. "Student S123 not found" or "Room is at capacity (5)".
@@ -91,7 +99,7 @@ class BookingStore extends ChangeNotifier {
     final everyone = await Api.addToBooking(bookingId: booking.id, studentId: studentId);
     // The server sends back everyone in the booking. Use its spelling of the new ID.
     final added = everyone.firstWhere(
-      (id) => id.toLowerCase() == studentId.toLowerCase(),
+          (id) => id.toLowerCase() == studentId.toLowerCase(),
       orElse: () => studentId,
     );
     if (!booking.invited.contains(added)) booking.invited.add(added);

@@ -52,10 +52,10 @@ class Api {
   static Future<List<String>> addToBooking({required int bookingId, required String studentId}) async {
     final headers = await _authHeaders();
     final response = await _send(() => http.post(
-          Uri.parse('$apiBaseUrl/add-to-booking'),
-          headers: headers,
-          body: jsonEncode({'booking_id': bookingId, 'invited_user_id': studentId}),
-        ));
+      Uri.parse('$apiBaseUrl/add-to-booking'),
+      headers: headers,
+      body: jsonEncode({'booking_id': bookingId, 'invited_user_id': studentId}),
+    ));
     final users = jsonDecode(response.body)['users'] as List<dynamic>;
     return [for (final user in users) user['student_id'] as String];
   }
@@ -70,25 +70,61 @@ class Api {
   }) async {
     final headers = await _authHeaders();
     final response = await _send(() => http.post(
-          Uri.parse('$apiBaseUrl/book-room'),
-          headers: headers,
-          body: jsonEncode({
-            'room_id': roomId,
-            // The server wants times with a timezone; UTC ("...Z") is simplest.
-            'start_time': start.toUtc().toIso8601String(),
-            'end_time': end.toUtc().toIso8601String(),
-            'student_ids': studentIds,
-          }),
-        ));
+      Uri.parse('$apiBaseUrl/book-room'),
+      headers: headers,
+      body: jsonEncode({
+        'room_id': roomId,
+        // The server wants times with a timezone; UTC ("...Z") is simplest.
+        'start_time': start.toUtc().toIso8601String(),
+        'end_time': end.toUtc().toIso8601String(),
+        'student_ids': studentIds,
+      }),
+    ));
     return jsonDecode(response.body) as Map<String, dynamic>;
+  }
+
+  // GET /me → {id, student_id, email, institution: {id, name} or null}
+  static Future<Map<String, dynamic>> getMe() async {
+    return await _get('/me') as Map<String, dynamic>;
+  }
+
+  // GET /room-booking-status?room_id=<id> → {room: {id, name}, booking: {...} or null}
+  // "booking" is only filled in if you have a booking for this room right now
+  // (it has started, and it's still within the 15-minute no-show window or
+  // someone has already signed in). That's when you're allowed to sign in.
+  static Future<Map<String, dynamic>> getRoomBookingStatus(int roomId) async {
+    return await _get('/room-booking-status?room_id=$roomId') as Map<String, dynamic>;
+  }
+
+  // POST /room-sign-in?room_id=<id>
+  // Throws an ApiException with the server's reason if it isn't allowed,
+  // e.g. "You have no booking for this room right now".
+  static Future<void> signInToRoom(int roomId) async {
+    final headers = await _authHeaders();
+    await _send(() => http.post(
+      Uri.parse('$apiBaseUrl/room-sign-in?room_id=$roomId'),
+      headers: headers,
+    ));
+  }
+
+  // POST /logout → tells the server this login token is finished, so it can't
+  // be used again. If that fails (e.g. no internet, or the token had already
+  // expired) we carry on: the caller still forgets the token on this device.
+  static Future<void> logout() async {
+    try {
+      final headers = await _authHeaders();
+      await _send(() => http.post(Uri.parse('$apiBaseUrl/logout'), headers: headers));
+    } on ApiException {
+      // nothing more to do
+    }
   }
 
   static Future<dynamic> _get(String path) async {
     final headers = await _authHeaders();
     final response = await _send(() => http.get(
-          Uri.parse('$apiBaseUrl$path'),
-          headers: headers,
-        ));
+      Uri.parse('$apiBaseUrl$path'),
+      headers: headers,
+    ));
     return jsonDecode(response.body);
   }
 
