@@ -1,4 +1,5 @@
-import 'package:client/screens/login.dart';
+// import 'package:client/screens/login.dart';
+import 'package:client/screens/app_shell.dart';
 import 'package:client/theme/theme.dart';
 import 'package:flutter/material.dart';
 
@@ -15,8 +16,10 @@ class App extends StatelessWidget {
       title: 'Buzzbook',
       theme: AppTheme.theme,
       debugShowCheckedModeBanner: false,
-      home: const LoginScreen(),
+      // TEMPORARY: skip login while the server isn't connected.
+      // Switch back to LoginScreen (and un-comment its import) when it is.
+      // home: const LoginScreen(),
+      home: const AppShell(),
     );
   }
 }
-
