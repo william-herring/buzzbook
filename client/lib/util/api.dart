@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:client/constants.dart';
+import 'package:client/models/booking.dart';
 import 'package:client/util/auth_storage.dart';
 import 'package:http/http.dart' as http;
 
@@ -28,6 +29,13 @@ class Api {
   // GET /get-rooms → [{id, name, building_id, floor, capacity, televisions, ...}, ...]
   static Future<List<dynamic>> getRooms() async {
     return await _get('/get-rooms') as List<dynamic>;
+  }
+
+  // GET /room/<id> → {..., bookings: [{id, start_time, end_time, student_ids}, ...]}
+  // Returns the room's bookings that haven't finished yet, by anyone.
+  static Future<List<RoomBooking>> getRoomBookings(int roomId) async {
+    final room = await _get('/room/$roomId') as Map<String, dynamic>;
+    return [for (final json in room['bookings'] ?? []) RoomBooking.fromApi(json)];
   }
 
   // The ids of the rooms the database marks as available right now.

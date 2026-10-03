@@ -29,10 +29,31 @@ class _BookingScreenState extends State<BookingScreen> {
   final inviteController = TextEditingController();
   bool sending = false; // true while waiting for the server
 
+  List<RoomBooking> roomBookings = []; // everyone's upcoming bookings of this room
+  bool loadingBookings = true;
+  String? bookingsError; // set if they couldn't be loaded
+
+  @override
+  void initState() {
+    super.initState();
+    loadRoomBookings();
+  }
+
   @override
   void dispose() {
     inviteController.dispose();
     super.dispose();
+  }
+
+  // Asks the server for this room's upcoming bookings (/room/<id>).
+  Future<void> loadRoomBookings() async {
+    try {
+      final bookings = await Api.getRoomBookings(widget.room.id);
+      if (mounted) setState(() => roomBookings = bookings);
+    } on ApiException catch (e) {
+      if (mounted) setState(() => bookingsError = e.message);
+    }
+    if (mounted) setState(() => loadingBookings = false);
   }
 
   // The real date and time a slot starts at. Slot 16 is 5:00pm (the end of slot 15).
@@ -52,17 +73,23 @@ class _BookingScreenState extends State<BookingScreen> {
   // Slots that have already started can't be booked.
   bool isPast(int slot) => slotTime(slot).isBefore(DateTime.now());
 
-  // The booking that covers this slot, if the app knows of one.
-  // The server has no endpoint yet that lists a room's bookings, so this only
-  // knows the bookings made in the app (yours, including friends you invited).
-  // Anyone else's booking is still caught by the server when you press Book:
-  // it replies "Room is already booked for that time".
-  Booking? bookingAt(int slot) {
+  // Every booking of this room we know about: the server's list, plus any you've
+  // made in the app that the server list doesn't include yet.
+  List<RoomBooking> get allBookings {
+    final fromServer = roomBookings.map((b) => b.id).toSet();
+    return [
+      ...roomBookings,
+      for (final b in BookingStore.instance.bookings)
+        if (b.room.id == widget.room.id && !fromServer.contains(b.id))
+          RoomBooking(id: b.id, start: b.start, end: b.end, studentIds: ['You', ...b.invited]),
+    ];
+  }
+
+  // The booking that covers this slot, if there is one.
+  RoomBooking? bookingAt(int slot) {
     final slotStart = slotTime(slot);
     final slotEnd = slotTime(slot + 1);
-    return BookingStore.instance.bookings
-        .where((b) => b.room.id == widget.room.id && b.start.isBefore(slotEnd) && b.end.isAfter(slotStart))
-        .firstOrNull;
+    return allBookings.where((b) => b.start.isBefore(slotEnd) && b.end.isAfter(slotStart)).firstOrNull;
   }
 
   bool isBooked(int slot) => bookingAt(slot) != null;
@@ -195,6 +222,17 @@ class _BookingScreenState extends State<BookingScreen> {
                       const Text('Up to 2 hours', style: TextStyle(fontSize: 13, color: AppColors.grey)),
                     ],
                   ),
+                  if (loadingBookings)
+                    const Padding(
+                      padding: EdgeInsets.only(bottom: 8),
+                      child: LinearProgressIndicator(),
+                    ),
+                  if (bookingsError != null)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Text("Couldn't load who's booked this room: $bookingsError",
+                          style: const TextStyle(fontSize: 13, color: AppColors.grey)),
+                    ),
                   GridView.count(
                     crossAxisCount: 4,
                     shrinkWrap: true, // let the grid sit inside the ListView
@@ -282,7 +320,7 @@ class _BookingScreenState extends State<BookingScreen> {
   }
 
   // A panel listing everyone in a booking.
-  void showWhoBooked(Booking booking) {
+  void showWhoBooked(RoomBooking booking) {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(8))),
@@ -293,9 +331,9 @@ class _BookingScreenState extends State<BookingScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('Booked ${booking.dayLabel}, ${booking.timeLabel}', style: Theme.of(context).textTheme.titleMedium),
-            Text(booking.room.readableName, style: const TextStyle(color: AppColors.grey)),
+            Text(widget.room.readableName, style: const TextStyle(color: AppColors.grey)),
             const SizedBox(height: 8),
-            for (final person in ['You', ...booking.invited])
+            for (final person in booking.studentIds)
               ListTile(
                 contentPadding: EdgeInsets.zero,
                 dense: true,

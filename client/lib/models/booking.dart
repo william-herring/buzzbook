@@ -14,26 +14,52 @@ class Booking {
   Booking({required this.id, required this.room, required this.start, required this.end, List<String>? invited})
       : invited = invited ?? [];
 
-  // "Today", "Tomorrow" or a weekday like "Mon"
-  String get dayLabel {
-    final today = DateTime.now();
-    final startDay = DateTime(start.year, start.month, start.day);
-    final difference = startDay.difference(DateTime(today.year, today.month, today.day)).inDays;
-    if (difference == 0) return 'Today';
-    if (difference == 1) return 'Tomorrow';
-    const names = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    return names[start.weekday - 1];
+  String get dayLabel => dayLabelFor(start);
+  String get timeLabel => timeRangeLabel(start, end);
+}
+
+// Any booking of a room, by anyone, as sent by the server's /room/<id>.
+class RoomBooking {
+  final int id;
+  final DateTime start;
+  final DateTime end;
+  final List<String> studentIds; // everyone in the booking
+
+  RoomBooking({required this.id, required this.start, required this.end, required this.studentIds});
+
+  factory RoomBooking.fromApi(Map<String, dynamic> json) {
+    return RoomBooking(
+      id: json['id'],
+      start: DateTime.parse(json['start_time']).toLocal(),
+      end: DateTime.parse(json['end_time']).toLocal(),
+      studentIds: [for (final id in json['student_ids'] ?? []) id as String],
+    );
   }
 
-  // e.g. "2:00–3:30"
-  String get timeLabel => '${_clock(start)}–${_clock(end)}';
+  String get dayLabel => dayLabelFor(start);
+  String get timeLabel => timeRangeLabel(start, end);
+}
 
-  static String _clock(DateTime time) {
-    final local = time.toLocal();
-    var hour = local.hour % 12;
-    if (hour == 0) hour = 12;
-    return '$hour:${local.minute.toString().padLeft(2, '0')}';
-  }
+// "Today", "Tomorrow" or a weekday like "Mon"
+String dayLabelFor(DateTime time) {
+  final local = time.toLocal();
+  final today = DateTime.now();
+  final day = DateTime(local.year, local.month, local.day);
+  final difference = day.difference(DateTime(today.year, today.month, today.day)).inDays;
+  if (difference == 0) return 'Today';
+  if (difference == 1) return 'Tomorrow';
+  const names = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  return names[local.weekday - 1];
+}
+
+// e.g. "2:00–3:30"
+String timeRangeLabel(DateTime start, DateTime end) => '${_clock(start)}–${_clock(end)}';
+
+String _clock(DateTime time) {
+  final local = time.toLocal();
+  var hour = local.hour % 12;
+  if (hour == 0) hour = 12;
+  return '$hour:${local.minute.toString().padLeft(2, '0')}';
 }
 
 // Holds the bookings made while the app is open, so "Current bookings" can show them.
