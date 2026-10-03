@@ -20,15 +20,6 @@ FEATURE_COLUMNS = {
 
 DEFAULT_PREFIX = "buzzbook://room/"
 
-FEATURE_COLUMNS = {
-    "Chairs": "chairs",
-    "Tables": "tables",
-    "Whiteboard": "whiteboards",
-    "TV": "televisions",
-    "Projector": "projectors",
-    "Powerpoints": "powerpoints",
-}
-
 
 def _get_or_create(model, lookup, **values):
     obj = model.query.filter_by(**lookup).first()
@@ -41,13 +32,39 @@ def _get_or_create(model, lookup, **values):
     return obj, created
 
 
+def _clean_outline(building_name, outline):
+    valid = (
+        isinstance(outline, list)
+        and len(outline) >= 3
+        and all(
+            isinstance(p, (list, tuple))
+            and len(p) == 2
+            and all(isinstance(v, (int, float)) and not isinstance(v, bool) for v in p)
+            and -90 <= p[0] <= 90
+            and -180 <= p[1] <= 180
+            for p in outline
+        )
+    )
+    if not valid:
+        raise ValueError(
+            f"The outline for {building_name} must be a list of at least 3 "
+            f"[latitude, longitude] pairs"
+        )
+    return [[float(lat), float(lng)] for lat, lng in outline]
+
+
 def populate_from_file(path):
     with open(path, encoding="utf-8") as f:
-        data = json.load(f)
+        return populate_from_data(json.load(f), source=path)
+
+
+def populate_from_data(data, source="the data"):
+    if not isinstance(data, dict):
+        raise ValueError(f"{source} must contain a JSON object, not a list or a single value")
 
     for key in ("name", "buildings", "users", "rooms"):
         if key not in data:
-            raise ValueError(f"'{key}' missing from {path}")
+            raise ValueError(f"'{key}' missing from {source}")
 
     building_defs = {str(b["building_id"]): b for b in data["buildings"]}
     undefined = sorted({str(r["building"]) for r in data["rooms"]} - building_defs.keys())
@@ -68,11 +85,15 @@ def populate_from_file(path):
 
         buildings = {}
         for building_id, b in building_defs.items():
+            extra = {}
+            if b.get("outline") is not None:
+                extra["outline"] = _clean_outline(b["name"], b["outline"])
             buildings[building_id], created = _get_or_create(
                 Building,
                 {"institution_id": institution.id, "name": b["name"]},
                 latitude=b.get("latitude"),
                 longitude=b.get("longitude"),
+                **extra,
             )
             counts["buildings"] += created
         db.session.flush()
@@ -93,6 +114,11 @@ def populate_from_file(path):
             counts["rooms"] += created
 
         for u in data["users"]:
+            existing = User.query.filter_by(student_id=u["student_id"]).first()
+            if existing and existing.institution_id not in (None, institution.id):
+                raise ValueError(
+                    f"Student {u['student_id']} already belongs to a different institution"
+                )
             user, created = _get_or_create(
                 User,
                 {"student_id": u["student_id"]},

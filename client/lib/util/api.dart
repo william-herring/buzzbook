@@ -21,7 +21,16 @@ class ApiException implements Exception {
 class Api {
   static const _timeout = Duration(seconds: 10);
 
-  // GET /get-buildings → [{id, name, latitude, longitude}, ...]
+  // GET /institutions → [{id, name}, ...]
+  // Doesn't need a login (it fills the dropdown on the login screen), so no
+  // token is sent.
+  static Future<List<dynamic>> getInstitutions() async {
+    final response = await _send(() => http.get(Uri.parse('$apiBaseUrl/institutions')));
+    return jsonDecode(response.body) as List<dynamic>;
+  }
+
+  // GET /get-buildings → [{id, name, latitude, longitude, outline}, ...]
+  // outline is a list of [latitude, longitude] corners, or null.
   static Future<List<dynamic>> getBuildings() async {
     return await _get('/get-buildings') as List<dynamic>;
   }

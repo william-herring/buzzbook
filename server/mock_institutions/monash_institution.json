@@ -1,0 +1,356 @@
+{
+  "name": "Monash University",
+  "latitude": -37.914,
+  "longitude": 145.131,
+  "buildings": [
+    {
+      "building_id": "25",
+      "name": "Building 25",
+      "latitude": -37.9118,
+      "longitude": 145.1315,
+      "outline": [
+        [
+          -37.91167,
+          145.13122
+        ],
+        [
+          -37.91167,
+          145.13178
+        ],
+        [
+          -37.91193,
+          145.13178
+        ],
+        [
+          -37.91193,
+          145.13122
+        ]
+      ]
+    },
+    {
+      "building_id": "29",
+      "name": "Building 29",
+      "latitude": -37.9126,
+      "longitude": 145.1325,
+      "outline": [
+        [
+          -37.91244,
+          145.13216
+        ],
+        [
+          -37.91244,
+          145.1325
+        ],
+        [
+          -37.9126,
+          145.1325
+        ],
+        [
+          -37.9126,
+          145.13284
+        ],
+        [
+          -37.91276,
+          145.13284
+        ],
+        [
+          -37.91276,
+          145.13216
+        ]
+      ]
+    },
+    {
+      "building_id": "55",
+      "name": "Building 55",
+      "latitude": -37.9144,
+      "longitude": 145.1315,
+      "outline": [
+        [
+          -37.91429,
+          145.13126
+        ],
+        [
+          -37.91429,
+          145.13174
+        ],
+        [
+          -37.91451,
+          145.13174
+        ],
+        [
+          -37.91451,
+          145.13126
+        ]
+      ]
+    },
+    {
+      "building_id": "72",
+      "name": "Building 72",
+      "latitude": -37.9132,
+      "longitude": 145.1342,
+      "outline": [
+        [
+          -37.91306,
+          145.1339
+        ],
+        [
+          -37.91306,
+          145.1345
+        ],
+        [
+          -37.91334,
+          145.1345
+        ],
+        [
+          -37.91334,
+          145.1339
+        ]
+      ]
+    }
+  ],
+  "users": [
+    {
+      "student_id": "32145601",
+      "email": "mia.wilson@student.monash.edu",
+      "password": "password"
+    },
+    {
+      "student_id": "32145602",
+      "email": "ethan.zhang@student.monash.edu",
+      "password": "password"
+    },
+    {
+      "student_id": "32145603",
+      "email": "chloe.martin@student.monash.edu",
+      "password": "password"
+    },
+    {
+      "student_id": "32145604",
+      "email": "lucas.singh@student.monash.edu",
+      "password": "password"
+    }
+  ],
+  "rooms": [
+    {
+      "name": "25.01.012",
+      "building": "25",
+      "floor": "1",
+      "room_type": "Library Group Study Room",
+      "capacity": 6,
+      "features": {
+        "Chairs": 0,
+        "Tables": 0,
+        "Whiteboard": 0,
+        "TV": 0,
+        "Projector": 0,
+        "Powerpoints": 0
+      },
+      "latitude": -37.9118,
+      "longitude": 145.1315
+    },
+    {
+      "name": "25.01.013",
+      "building": "25",
+      "floor": "1",
+      "room_type": "Library Group Study Room",
+      "capacity": 6,
+      "features": {
+        "Chairs": 0,
+        "Tables": 1,
+        "Whiteboard": 0,
+        "TV": 0,
+        "Projector": 0,
+        "Powerpoints": 0
+      },
+      "latitude": -37.9118,
+      "longitude": 145.1315
+    },
+    {
+      "name": "25.02.014",
+      "building": "25",
+      "floor": "2",
+      "room_type": "Library Group Study Room",
+      "capacity": 8,
+      "features": {
+        "Chairs": 0,
+        "Tables": 1,
+        "Whiteboard": 0,
+        "TV": 0,
+        "Projector": 0,
+        "Powerpoints": 0
+      },
+      "latitude": -37.9118,
+      "longitude": 145.1315
+    },
+    {
+      "name": "25.02.015",
+      "building": "25",
+      "floor": "2",
+      "room_type": "Library Group Study Room",
+      "capacity": 4,
+      "features": {
+        "Chairs": 0,
+        "Tables": 1,
+        "Whiteboard": 0,
+        "TV": 1,
+        "Projector": 0,
+        "Powerpoints": 0
+      },
+      "latitude": -37.9118,
+      "longitude": 145.1315
+    },
+    {
+      "name": "29.01.003",
+      "building": "29",
+      "floor": "1",
+      "room_type": "Group Study Room",
+      "capacity": 5,
+      "features": {
+        "Chairs": 0,
+        "Tables": 0,
+        "Whiteboard": 1,
+        "TV": 0,
+        "Projector": 0,
+        "Powerpoints": 0
+      },
+      "latitude": -37.9126,
+      "longitude": 145.1325
+    },
+    {
+      "name": "29.01.004",
+      "building": "29",
+      "floor": "1",
+      "room_type": "Group Study Room",
+      "capacity": 5,
+      "features": {
+        "Chairs": 0,
+        "Tables": 0,
+        "Whiteboard": 1,
+        "TV": 1,
+        "Projector": 0,
+        "Powerpoints": 0
+      },
+      "latitude": -37.9126,
+      "longitude": 145.1325
+    },
+    {
+      "name": "29.03.021",
+      "building": "29",
+      "floor": "3",
+      "room_type": "Group Study Room",
+      "capacity": 6,
+      "features": {
+        "Chairs": 0,
+        "Tables": 1,
+        "Whiteboard": 0,
+        "TV": 0,
+        "Projector": 0,
+        "Powerpoints": 0
+      },
+      "latitude": -37.9126,
+      "longitude": 145.1325
+    },
+    {
+      "name": "55.02.101",
+      "building": "55",
+      "floor": "2",
+      "room_type": "Project Room",
+      "capacity": 8,
+      "features": {
+        "Chairs": 0,
+        "Tables": 0,
+        "Whiteboard": 0,
+        "TV": 1,
+        "Projector": 0,
+        "Powerpoints": 0
+      },
+      "latitude": -37.9144,
+      "longitude": 145.1315
+    },
+    {
+      "name": "55.02.102",
+      "building": "55",
+      "floor": "2",
+      "room_type": "Project Room",
+      "capacity": 8,
+      "features": {
+        "Chairs": 0,
+        "Tables": 1,
+        "Whiteboard": 1,
+        "TV": 0,
+        "Projector": 0,
+        "Powerpoints": 0
+      },
+      "latitude": -37.9144,
+      "longitude": 145.1315
+    },
+    {
+      "name": "55.04.210",
+      "building": "55",
+      "floor": "4",
+      "room_type": "Project Room",
+      "capacity": 6,
+      "features": {
+        "Chairs": 0,
+        "Tables": 1,
+        "Whiteboard": 1,
+        "TV": 0,
+        "Projector": 0,
+        "Powerpoints": 0
+      },
+      "latitude": -37.9144,
+      "longitude": 145.1315
+    },
+    {
+      "name": "72.01.001",
+      "building": "72",
+      "floor": "1",
+      "room_type": "Library Group Study Room",
+      "capacity": 4,
+      "features": {
+        "Chairs": 0,
+        "Tables": 1,
+        "Whiteboard": 1,
+        "TV": 0,
+        "Projector": 0,
+        "Powerpoints": 0
+      },
+      "latitude": -37.9132,
+      "longitude": 145.1342
+    },
+    {
+      "name": "72.01.002",
+      "building": "72",
+      "floor": "1",
+      "room_type": "Library Group Study Room",
+      "capacity": 4,
+      "features": {
+        "Chairs": 0,
+        "Tables": 1,
+        "Whiteboard": 0,
+        "TV": 1,
+        "Projector": 0,
+        "Powerpoints": 0
+      },
+      "latitude": -37.9132,
+      "longitude": 145.1342
+    },
+    {
+      "name": "72.02.007",
+      "building": "72",
+      "floor": "2",
+      "room_type": "Library Group Study Room",
+      "capacity": 6,
+      "features": {
+        "Chairs": 0,
+        "Tables": 0,
+        "Whiteboard": 1,
+        "TV": 1,
+        "Projector": 0,
+        "Powerpoints": 0
+      },
+      "latitude": -37.9132,
+      "longitude": 145.1342
+    }
+  ]
+}

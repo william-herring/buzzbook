@@ -1,0 +1,356 @@
+{
+  "name": "University of Melbourne",
+  "latitude": -37.7964,
+  "longitude": 144.9612,
+  "buildings": [
+    {
+      "building_id": "baillieu",
+      "name": "Baillieu Library",
+      "latitude": -37.7981,
+      "longitude": 144.96,
+      "outline": [
+        [
+          -37.79797,
+          144.95972
+        ],
+        [
+          -37.79797,
+          144.96028
+        ],
+        [
+          -37.79823,
+          144.96028
+        ],
+        [
+          -37.79823,
+          144.95972
+        ]
+      ]
+    },
+    {
+      "building_id": "old_arts",
+      "name": "Old Arts",
+      "latitude": -37.7977,
+      "longitude": 144.9606,
+      "outline": [
+        [
+          -37.79754,
+          144.96026
+        ],
+        [
+          -37.79754,
+          144.9606
+        ],
+        [
+          -37.7977,
+          144.9606
+        ],
+        [
+          -37.7977,
+          144.96094
+        ],
+        [
+          -37.79786,
+          144.96094
+        ],
+        [
+          -37.79786,
+          144.96026
+        ]
+      ]
+    },
+    {
+      "building_id": "redmond_barry",
+      "name": "Redmond Barry Building",
+      "latitude": -37.7968,
+      "longitude": 144.9613,
+      "outline": [
+        [
+          -37.79669,
+          144.96106
+        ],
+        [
+          -37.79669,
+          144.96154
+        ],
+        [
+          -37.79691,
+          144.96154
+        ],
+        [
+          -37.79691,
+          144.96106
+        ]
+      ]
+    },
+    {
+      "building_id": "eng_b",
+      "name": "Engineering Block B",
+      "latitude": -37.7989,
+      "longitude": 144.9625,
+      "outline": [
+        [
+          -37.79876,
+          144.9622
+        ],
+        [
+          -37.79876,
+          144.9628
+        ],
+        [
+          -37.79904,
+          144.9628
+        ],
+        [
+          -37.79904,
+          144.9622
+        ]
+      ]
+    }
+  ],
+  "users": [
+    {
+      "student_id": "1301001",
+      "email": "olivia.nguyen@student.unimelb.edu.au",
+      "password": "password"
+    },
+    {
+      "student_id": "1301002",
+      "email": "liam.patel@student.unimelb.edu.au",
+      "password": "password"
+    },
+    {
+      "student_id": "1301003",
+      "email": "ava.thompson@student.unimelb.edu.au",
+      "password": "password"
+    },
+    {
+      "student_id": "1301004",
+      "email": "noah.kim@student.unimelb.edu.au",
+      "password": "password"
+    }
+  ],
+  "rooms": [
+    {
+      "name": "Group Study A",
+      "building": "baillieu",
+      "floor": "1",
+      "room_type": "Library Group Study Room",
+      "capacity": 6,
+      "features": {
+        "Chairs": 0,
+        "Tables": 1,
+        "Whiteboard": 1,
+        "TV": 1,
+        "Projector": 0,
+        "Powerpoints": 0
+      },
+      "latitude": -37.7981,
+      "longitude": 144.96
+    },
+    {
+      "name": "Group Study B",
+      "building": "baillieu",
+      "floor": "1",
+      "room_type": "Library Group Study Room",
+      "capacity": 6,
+      "features": {
+        "Chairs": 0,
+        "Tables": 0,
+        "Whiteboard": 0,
+        "TV": 1,
+        "Projector": 0,
+        "Powerpoints": 0
+      },
+      "latitude": -37.7981,
+      "longitude": 144.96
+    },
+    {
+      "name": "Group Study C",
+      "building": "baillieu",
+      "floor": "2",
+      "room_type": "Library Group Study Room",
+      "capacity": 8,
+      "features": {
+        "Chairs": 0,
+        "Tables": 0,
+        "Whiteboard": 0,
+        "TV": 1,
+        "Projector": 0,
+        "Powerpoints": 0
+      },
+      "latitude": -37.7981,
+      "longitude": 144.96
+    },
+    {
+      "name": "Group Study D",
+      "building": "baillieu",
+      "floor": "2",
+      "room_type": "Library Group Study Room",
+      "capacity": 4,
+      "features": {
+        "Chairs": 0,
+        "Tables": 1,
+        "Whiteboard": 0,
+        "TV": 0,
+        "Projector": 0,
+        "Powerpoints": 0
+      },
+      "latitude": -37.7981,
+      "longitude": 144.96
+    },
+    {
+      "name": "Quiet Room 1",
+      "building": "baillieu",
+      "floor": "3",
+      "room_type": "Library Group Study Room",
+      "capacity": 2,
+      "features": {
+        "Chairs": 0,
+        "Tables": 0,
+        "Whiteboard": 1,
+        "TV": 1,
+        "Projector": 0,
+        "Powerpoints": 0
+      },
+      "latitude": -37.7981,
+      "longitude": 144.96
+    },
+    {
+      "name": "Seminar Pod 1",
+      "building": "old_arts",
+      "floor": "2",
+      "room_type": "Seminar Pod",
+      "capacity": 8,
+      "features": {
+        "Chairs": 0,
+        "Tables": 0,
+        "Whiteboard": 0,
+        "TV": 0,
+        "Projector": 0,
+        "Powerpoints": 0
+      },
+      "latitude": -37.7977,
+      "longitude": 144.9606
+    },
+    {
+      "name": "Seminar Pod 2",
+      "building": "old_arts",
+      "floor": "2",
+      "room_type": "Seminar Pod",
+      "capacity": 8,
+      "features": {
+        "Chairs": 0,
+        "Tables": 0,
+        "Whiteboard": 0,
+        "TV": 0,
+        "Projector": 0,
+        "Powerpoints": 0
+      },
+      "latitude": -37.7977,
+      "longitude": 144.9606
+    },
+    {
+      "name": "Seminar Pod 3",
+      "building": "old_arts",
+      "floor": "3",
+      "room_type": "Seminar Pod",
+      "capacity": 10,
+      "features": {
+        "Chairs": 0,
+        "Tables": 0,
+        "Whiteboard": 0,
+        "TV": 1,
+        "Projector": 0,
+        "Powerpoints": 0
+      },
+      "latitude": -37.7977,
+      "longitude": 144.9606
+    },
+    {
+      "name": "Project Room 1",
+      "building": "redmond_barry",
+      "floor": "4",
+      "room_type": "Project Room",
+      "capacity": 6,
+      "features": {
+        "Chairs": 0,
+        "Tables": 1,
+        "Whiteboard": 1,
+        "TV": 0,
+        "Projector": 0,
+        "Powerpoints": 0
+      },
+      "latitude": -37.7968,
+      "longitude": 144.9613
+    },
+    {
+      "name": "Project Room 2",
+      "building": "redmond_barry",
+      "floor": "4",
+      "room_type": "Project Room",
+      "capacity": 6,
+      "features": {
+        "Chairs": 0,
+        "Tables": 0,
+        "Whiteboard": 1,
+        "TV": 1,
+        "Projector": 0,
+        "Powerpoints": 0
+      },
+      "latitude": -37.7968,
+      "longitude": 144.9613
+    },
+    {
+      "name": "Project Room 3",
+      "building": "redmond_barry",
+      "floor": "5",
+      "room_type": "Project Room",
+      "capacity": 5,
+      "features": {
+        "Chairs": 0,
+        "Tables": 0,
+        "Whiteboard": 0,
+        "TV": 1,
+        "Projector": 0,
+        "Powerpoints": 0
+      },
+      "latitude": -37.7968,
+      "longitude": 144.9613
+    },
+    {
+      "name": "Meeting Room 1",
+      "building": "eng_b",
+      "floor": "1",
+      "room_type": "Group Study Room",
+      "capacity": 5,
+      "features": {
+        "Chairs": 0,
+        "Tables": 1,
+        "Whiteboard": 1,
+        "TV": 0,
+        "Projector": 0,
+        "Powerpoints": 0
+      },
+      "latitude": -37.7989,
+      "longitude": 144.9625
+    },
+    {
+      "name": "Meeting Room 2",
+      "building": "eng_b",
+      "floor": "1",
+      "room_type": "Group Study Room",
+      "capacity": 5,
+      "features": {
+        "Chairs": 0,
+        "Tables": 1,
+        "Whiteboard": 1,
+        "TV": 0,
+        "Projector": 0,
+        "Powerpoints": 0
+      },
+      "latitude": -37.7989,
+      "longitude": 144.9625
+    }
+  ]
+}
