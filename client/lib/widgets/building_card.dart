@@ -47,7 +47,6 @@ class BuildingCard extends StatelessWidget {
 
   Widget _buildDetails() {
     final freeCount = rooms.where((r) => r.status == RoomStatus.free).length;
-    final soonCount = rooms.where((r) => r.status == RoomStatus.soon).length;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -57,7 +56,7 @@ class BuildingCard extends StatelessWidget {
             style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
         const SizedBox(height: 4),
         Text(
-          '${rooms.length} rooms · $freeCount free now, $soonCount free soon',
+          '${rooms.length} rooms · $freeCount free now',
           style: const TextStyle(fontSize: 14, color: AppColors.grey),
         ),
         const SizedBox(height: 12),

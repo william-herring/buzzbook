@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
-import '../models/booking.dart';
 import '../models/building.dart';
 import '../models/room.dart';
 import '../models/room_filters.dart';
 import '../theme/colors.dart';
 import '../widgets/current_bookings.dart';
+import '../widgets/load_error.dart';
 import '../widgets/map_markers.dart';
 import 'booking_screen.dart';
 
@@ -21,14 +21,29 @@ class RoomsScreen extends StatefulWidget {
 class _RoomsScreenState extends State<RoomsScreen> {
   final filters = RoomFilters();
   List<Room> allRooms = [];
+  bool loading = true;
+  Object? error; // set if the server couldn't be reached
 
   @override
   void initState() {
     super.initState();
-    loadRooms().then((rooms) {
-      BookingStore.instance.addExampleBookings(rooms);
-      setState(() => allRooms = rooms);
+    fetchRooms();
+  }
+
+  Future<void> fetchRooms({bool refresh = false}) async {
+    setState(() {
+      loading = true;
+      error = null;
     });
+    try {
+      final rooms = await loadRooms(refresh: refresh);
+      if (!mounted) return;
+      setState(() => allRooms = rooms);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => error = e);
+    }
+    if (mounted) setState(() => loading = false);
   }
 
   void openBooking(Room room) {
@@ -54,20 +69,29 @@ class _RoomsScreenState extends State<RoomsScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Rooms')),
-      body: ListView(
+      // Pull down on the list to fetch the rooms again.
+      body: RefreshIndicator(
+        onRefresh: () => fetchRooms(refresh: true),
+        child: ListView(
         children: [
           const CurrentBookings(),
           const SizedBox(height: 8),
           _filterRow(),
           const Divider(height: 1),
-          if (allRooms.isNotEmpty && listItems.isEmpty)
+          if (loading)
+            const Padding(
+              padding: EdgeInsets.all(32),
+              child: Center(child: CircularProgressIndicator()),
+            ),
+          if (error != null) LoadError(error: error!, onRetry: () => fetchRooms(refresh: true)),
+          if (!loading && error == null && listItems.isEmpty)
             const Padding(
               padding: EdgeInsets.all(24),
               child: Text('No rooms match these filters.', style: TextStyle(color: AppColors.grey)),
             ),
           ...listItems,
         ],
+        ),
       ),
     );
   }

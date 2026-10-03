@@ -19,6 +19,11 @@ const List<Building> rmitBuildings = [
   Building(id: '94', name: 'Carlton Library', location: LatLng(-37.80591, 144.96396)),
 ];
 
+// Finds a building by its number. If the server knows a building this list
+// doesn't (yet), we still return something sensible instead of crashing.
 Building findBuilding(String id) {
-  return rmitBuildings.firstWhere((b) => b.id == id);
+  return rmitBuildings.firstWhere(
+    (b) => b.id == id,
+    orElse: () => Building(id: id, name: 'Building $id', location: const LatLng(-37.8076, 144.9634)),
+  );
 }

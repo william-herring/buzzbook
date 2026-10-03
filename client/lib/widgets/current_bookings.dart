@@ -106,7 +106,7 @@ class _CurrentBookingsState extends State<CurrentBookings> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('${booking.day}, ${booking.time}',
+            Text('${booking.dayLabel}, ${booking.timeLabel}',
                 style: const TextStyle(fontSize: 13, color: AppColors.grey)),
             const SizedBox(height: 2),
             Text(booking.room.readableName,
@@ -152,6 +152,10 @@ class _CurrentBookingsState extends State<CurrentBookings> {
                 children: [
                   Text('Invites', style: Theme.of(context).textTheme.titleMedium),
                   Text(booking.room.readableName, style: const TextStyle(color: AppColors.grey)),
+                  const SizedBox(height: 4),
+                  // The server can only set invites when the booking is made (for now).
+                  const Text("Changes here aren't saved to the server yet.",
+                      style: TextStyle(fontSize: 12, color: AppColors.soon)),
                   const SizedBox(height: 12),
                   if (booking.invited.isEmpty)
                     const Text('Nobody invited yet.', style: TextStyle(color: AppColors.grey)),
@@ -179,7 +183,7 @@ class _CurrentBookingsState extends State<CurrentBookings> {
                           controller: controller,
                           onSubmitted: (_) => add(),
                           decoration: const InputDecoration(
-                            hintText: 'Email or student name',
+                            hintText: 'Student ID, e.g. S4247161',
                             border: OutlineInputBorder(),
                             isDense: true,
                           ),

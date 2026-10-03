@@ -4,9 +4,11 @@ import '../models/booking.dart';
 import '../models/building.dart';
 import '../models/room.dart';
 import '../theme/colors.dart';
+import '../util/api.dart';
+import '../widgets/load_error.dart';
 
-// "Book a room": pick a day, pick up to 2 hours of time slots, invite friends.
-// Nothing is saved yet. That happens once William's server has a bookings endpoint.
+// "Book a room": pick a day, pick up to 2 hours of time slots, invite friends,
+// then send it to the server's /book-room endpoint.
 class BookingScreen extends StatefulWidget {
   final Room room;
 
@@ -24,8 +26,9 @@ class _BookingScreenState extends State<BookingScreen> {
   int selectedDay = 0; // 0 = today, 1 = tomorrow, ...
   int? startSlot; // first selected slot, or null
   int? endSlot; // last selected slot, or null
-  final invited = <String>[];
+  final invited = <String>[]; // student IDs
   final inviteController = TextEditingController();
+  bool sending = false; // true while waiting for the server
 
   @override
   void dispose() {
@@ -33,37 +36,37 @@ class _BookingScreenState extends State<BookingScreen> {
     super.dispose();
   }
 
-  // "9:00", "9:30", ... "5:00" for slot numbers 0..16
-  String slotLabel(int slot) {
-    final totalMinutes = firstHour * 60 + slot * 30;
-    var hour = totalMinutes ~/ 60;
-    if (hour > 12) hour -= 12;
-    final minutes = totalMinutes % 60 == 0 ? '00' : '30';
-    return '$hour:$minutes';
+  // The real date and time a slot starts at. Slot 16 is 5:00pm (the end of slot 15).
+  DateTime slotTime(int slot) {
+    final now = DateTime.now();
+    return DateTime(now.year, now.month, now.day + selectedDay, firstHour).add(Duration(minutes: slot * 30));
   }
 
-  // PRETEND bookings until the server tells us the real ones.
-  bool isBooked(int slot) {
-    final seed = widget.room.name.codeUnits.fold(0, (sum, c) => sum + c);
-    return (seed + selectedDay * 7 + slot * 3) % 7 == 0;
+  // "9:00", "9:30", ... "5:00"
+  String slotLabel(int slot) {
+    final time = slotTime(slot);
+    var hour = time.hour % 12;
+    if (hour == 0) hour = 12;
+    return '$hour:${time.minute.toString().padLeft(2, '0')}';
   }
+
+  // Slots that have already started can't be booked.
+  // (The server doesn't tell us which times are taken yet. If one is, it
+  // replies with "Room is already booked for that time" when you press Book.)
+  bool isPast(int slot) => slotTime(slot).isBefore(DateTime.now());
 
   bool isSelected(int slot) {
     if (startSlot == null) return false;
     return slot >= startSlot! && slot <= endSlot!;
   }
 
-  // First tap picks a start time. A second tap on a later slot (within 2 hours,
-  // with nothing booked in between) stretches the booking to that slot.
+  // First tap picks a start time. A second tap on a later slot (within 2 hours)
+  // stretches the booking to that slot.
   void tapSlot(int slot) {
-    if (isBooked(slot)) return;
+    if (isPast(slot)) return;
     setState(() {
       final start = startSlot;
-      final canExtend = start != null &&
-          endSlot == start &&
-          slot > start &&
-          slot - start < maxSlots &&
-          !List.generate(slot - start, (i) => start + 1 + i).any(isBooked);
+      final canExtend = start != null && endSlot == start && slot > start && slot - start < maxSlots;
       if (canExtend) {
         endSlot = slot;
       } else {
@@ -79,25 +82,46 @@ class _BookingScreenState extends State<BookingScreen> {
     return names[DateTime.now().add(Duration(days: day)).weekday - 1];
   }
 
-  void addInvite(String name) {
-    if (name.trim().isEmpty) return;
-    setState(() => invited.add(name.trim()));
+  void addInvite(String studentId) {
+    final cleaned = studentId.trim().toUpperCase();
+    if (cleaned.isEmpty || invited.contains(cleaned)) return;
+    setState(() => invited.add(cleaned));
     inviteController.clear();
   }
 
-  // Adds the booking to "Current bookings" (only while the app is open,
-  // until the server can save it) and goes back.
-  void book() {
-    BookingStore.instance.add(Booking(
-      room: widget.room,
-      day: dayLabel(selectedDay),
-      time: '${slotLabel(startSlot!)}–${slotLabel(endSlot! + 1)}',
-      invited: List.from(invited),
-    ));
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Booked ${widget.room.readableName}. Demo only, not saved to the server.')),
-    );
-    Navigator.pop(context);
+  // Sends the booking to the server. On success it's added to "Current bookings".
+  Future<void> book() async {
+    setState(() => sending = true);
+    final start = slotTime(startSlot!);
+    final end = slotTime(endSlot! + 1);
+
+    try {
+      final result = await Api.bookRoom(roomId: widget.room.id, start: start, end: end, studentIds: invited);
+      BookingStore.instance.add(Booking(
+        id: result['booking_id'],
+        room: widget.room,
+        start: start,
+        end: end,
+        invited: List.from(invited),
+      ));
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Booked ${widget.room.readableName}')),
+      );
+      Navigator.pop(context);
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      setState(() => sending = false);
+      if (e.needsLogin) {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(content: LoadError(error: e, onRetry: () {})),
+        );
+      } else {
+        // e.g. "Room is already booked for that time" or "Users not found: S123"
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
+      }
+    }
   }
 
   @override
@@ -135,7 +159,7 @@ class _BookingScreenState extends State<BookingScreen> {
                           selected: day == selectedDay,
                           onTap: () => setState(() {
                             selectedDay = day;
-                            startSlot = null; // bookings differ per day, so clear the time
+                            startSlot = null; // a different day, so clear the time
                             endSlot = null;
                           }),
                         ),
@@ -168,7 +192,7 @@ class _BookingScreenState extends State<BookingScreen> {
                     controller: inviteController,
                     onSubmitted: addInvite,
                     decoration: const InputDecoration(
-                      hintText: 'Email or student name',
+                      hintText: 'Student ID, e.g. S4247161',
                       border: OutlineInputBorder(),
                       isDense: true,
                     ),
@@ -177,11 +201,11 @@ class _BookingScreenState extends State<BookingScreen> {
                   Wrap(
                     spacing: 8,
                     children: [
-                      for (final name in invited)
+                      for (final studentId in invited)
                         InputChip(
-                          label: Text(name),
+                          label: Text(studentId),
                           backgroundColor: AppColors.lilacLight,
-                          onDeleted: () => setState(() => invited.remove(name)),
+                          onDeleted: () => setState(() => invited.remove(studentId)),
                         ),
                     ],
                   ),
@@ -196,15 +220,17 @@ class _BookingScreenState extends State<BookingScreen> {
                 width: double.infinity,
                 height: 54,
                 child: FilledButton(
-                  onPressed: startSlot == null ? null : book, // null = greyed out
+                  onPressed: startSlot == null || sending ? null : book, // null = greyed out
                   style: FilledButton.styleFrom(
                     backgroundColor: AppColors.lilacDark,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
                   ),
                   child: Text(
-                    startSlot == null
-                        ? 'Pick a time'
-                        : 'Book ${slotLabel(startSlot!)}–${slotLabel(endSlot! + 1)}',
+                    sending
+                        ? 'Booking...'
+                        : startSlot == null
+                            ? 'Pick a time'
+                            : 'Book ${slotLabel(startSlot!)}–${slotLabel(endSlot! + 1)}',
                     style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                   ),
                 ),
@@ -236,12 +262,12 @@ class _BookingScreenState extends State<BookingScreen> {
   }
 
   Widget _timeSlot(int slot) {
-    final booked = isBooked(slot);
+    final past = isPast(slot);
     final selected = isSelected(slot);
 
     Color background = AppColors.freeLight;
     Color textColor = AppColors.freeDark;
-    if (booked) {
+    if (past) {
       background = AppColors.chip;
       textColor = const Color(0xFFB0B0B0);
     } else if (selected) {
@@ -254,15 +280,11 @@ class _BookingScreenState extends State<BookingScreen> {
       borderRadius: BorderRadius.circular(4),
       child: InkWell(
         borderRadius: BorderRadius.circular(4),
-        onTap: booked ? null : () => tapSlot(slot),
+        onTap: past ? null : () => tapSlot(slot),
         child: Center(
           child: Text(
             slotLabel(slot),
-            style: TextStyle(
-              color: textColor,
-              fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
-              decoration: booked ? TextDecoration.lineThrough : null,
-            ),
+            style: TextStyle(color: textColor, fontWeight: selected ? FontWeight.w600 : FontWeight.w400),
           ),
         ),
       ),

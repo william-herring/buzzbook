@@ -1,22 +1,23 @@
-import 'dart:convert';
+import '../util/api.dart';
 
-import 'package:flutter/services.dart';
+// Can the room be booked right now?
+enum RoomStatus { free, occupied, unavailable }
 
-// Is the room free right now? (Fake for now: see `status` below.)
-enum RoomStatus { free, soon, booked }
-
-// One study room, built from one entry in rmit_city_study_rooms.json.
+// One study room, as sent by the server's /get-rooms endpoint.
 class Room {
+  final int id; // the server's id, needed to book it
   final String name; // e.g. "80.05.003"
-  final String buildingId; // e.g. "80"
+  final String buildingId; // the building's number, e.g. "80"
   final int floor;
   final String roomType;
   final int capacity;
   final bool hasTv;
   final bool hasWhiteboard;
   final bool hasProjector;
+  final RoomStatus status;
 
   Room({
+    required this.id,
     required this.name,
     required this.buildingId,
     required this.floor,
@@ -25,35 +26,29 @@ class Room {
     required this.hasTv,
     required this.hasWhiteboard,
     required this.hasProjector,
+    required this.status,
   });
 
-  // Turns one JSON object into a Room.
-  factory Room.fromJson(Map<String, dynamic> json) {
-    final features = json['features'] as Map<String, dynamic>;
-    return Room(
-      name: json['name'],
-      buildingId: json['building'],
-      floor: int.parse(json['floor']), // the JSON stores floor as text, e.g. "5"
-      roomType: json['room_type'],
-      capacity: json['capacity'],
-      hasTv: features['TV'] > 0,
-      hasWhiteboard: features['Whiteboard'] > 0,
-      hasProjector: features['Projector'] > 0,
-    );
-  }
+  // Turns one room from the server into a Room.
+  // The server identifies buildings by a database id (1, 2, 3...), but the app
+  // uses the building number ("80"), so we're given a lookup from one to the other.
+  factory Room.fromApi(Map<String, dynamic> json, Map<int, String> buildingNumbers) {
+    RoomStatus status = RoomStatus.free;
+    if (json['occupied_now'] == true) status = RoomStatus.occupied;
+    if (json['status'] != null && json['status'] != 'available') status = RoomStatus.unavailable;
 
-  // PRETEND availability until the server can tell us real bookings.
-  // It's based on the room name, so a room always shows the same status.
-  RoomStatus get status {
-    final number = name.codeUnits.fold(0, (sum, c) => sum + c);
-    switch (number % 5) {
-      case 3:
-        return RoomStatus.soon;
-      case 4:
-        return RoomStatus.booked;
-      default:
-        return RoomStatus.free;
-    }
+    return Room(
+      id: json['id'],
+      name: json['name'],
+      buildingId: buildingNumbers[json['building_id']] ?? '?',
+      floor: json['floor'] ?? 0,
+      roomType: json['room_type'] ?? '',
+      capacity: json['capacity'] ?? 0,
+      hasTv: (json['televisions'] ?? 0) > 0,
+      hasWhiteboard: (json['whiteboards'] ?? 0) > 0,
+      hasProjector: (json['projectors'] ?? 0) > 0,
+      status: status,
+    );
   }
 
   // "80.05.003" → "Building 80, Level 5, Room 3"
@@ -71,14 +66,14 @@ class Room {
     switch (status) {
       case RoomStatus.free:
         return 'Free';
-      case RoomStatus.soon:
-        return 'Free soon';
-      case RoomStatus.booked:
-        return 'Booked';
+      case RoomStatus.occupied:
+        return 'In use';
+      case RoomStatus.unavailable:
+        return 'Unavailable';
     }
   }
 
-  // The JSON uses 0 when it doesn't know how many seats a room has.
+  // The data uses 0 when it doesn't know how many seats a room has.
   String get seatsLabel => capacity == 0 ? 'Seats unknown' : '$capacity seats';
 
   // e.g. "5 seats · TV · Whiteboard"
@@ -91,18 +86,28 @@ class Room {
   }
 }
 
-// Reads every room from the JSON file bundled with the app.
-// Later this becomes an HTTP request to William's server.
-// The result is remembered, so every screen shares the same list.
+// Fetches every room from the server.
+// The result is remembered, so the List and Map tabs share one download.
+// Pass refresh: true to fetch again (e.g. after a "Try again" button).
 Future<List<Room>>? _cachedRooms;
 
-Future<List<Room>> loadRooms() {
-  _cachedRooms ??= _readRoomsFile();
-  return _cachedRooms!;
+Future<List<Room>> loadRooms({bool refresh = false}) {
+  if (refresh) _cachedRooms = null;
+  final rooms = _cachedRooms ??= _fetchRooms();
+  // If the download fails, forget it so the next call tries again.
+  rooms.then((_) {}, onError: (_) {
+    if (identical(_cachedRooms, rooms)) _cachedRooms = null;
+  });
+  return rooms;
 }
 
-Future<List<Room>> _readRoomsFile() async {
-  final text = await rootBundle.loadString('assets/data/rmit_city_study_rooms.json');
-  final List<dynamic> list = jsonDecode(text);
-  return list.map((item) => Room.fromJson(item)).toList();
+Future<List<Room>> _fetchRooms() async {
+  // Ask for both lists at the same time, then wait for both.
+  final results = await Future.wait([Api.getBuildings(), Api.getRooms()]);
+  final buildings = results[0];
+  final rooms = results[1];
+
+  // e.g. {1: "8", 2: "10", ...}
+  final buildingNumbers = {for (final b in buildings) b['id'] as int: b['name'] as String};
+  return rooms.map((json) => Room.fromApi(json, buildingNumbers)).toList();
 }

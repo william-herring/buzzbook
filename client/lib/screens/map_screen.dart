@@ -9,6 +9,7 @@ import '../models/room_filters.dart';
 import '../theme/colors.dart';
 import '../widgets/building_card.dart';
 import '../widgets/filter_bar.dart';
+import '../widgets/load_error.dart';
 import '../widgets/map_markers.dart';
 import 'booking_screen.dart';
 
@@ -30,15 +31,24 @@ class _MapScreenState extends State<MapScreen> {
   // Tells us which building shape (if any) was under the finger/mouse on a tap.
   final LayerHitNotifier<String> buildingHit = ValueNotifier(null);
 
-  List<Room> allRooms = []; // filled in once the JSON has loaded
+  List<Room> allRooms = []; // filled in once the server replies
+  Object? error; // set if the server couldn't be reached
   Building? selectedBuilding; // null until the user taps a building
 
   @override
   void initState() {
     super.initState();
-    loadRooms().then((rooms) {
-      setState(() => allRooms = rooms);
-    });
+    fetchRooms();
+  }
+
+  Future<void> fetchRooms({bool refresh = false}) async {
+    setState(() => error = null);
+    try {
+      final rooms = await loadRooms(refresh: refresh);
+      if (mounted) setState(() => allRooms = rooms);
+    } catch (e) {
+      if (mounted) setState(() => error = e);
+    }
   }
 
   // Rooms in one building that pass the filters, in the chosen sort order.
@@ -108,6 +118,15 @@ class _MapScreenState extends State<MapScreen> {
               ),
             ],
           ),
+
+          // If loading failed, show why in a card in the middle of the map.
+          if (error != null)
+            Center(
+              child: Card(
+                margin: const EdgeInsets.all(32),
+                child: LoadError(error: error!, onRetry: () => fetchRooms(refresh: true)),
+              ),
+            ),
 
           // 2. The filter card floating at the top.
           Positioned(
