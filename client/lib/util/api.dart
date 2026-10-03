@@ -30,6 +30,15 @@ class Api {
     return await _get('/get-rooms') as List<dynamic>;
   }
 
+  // The ids of the rooms the database marks as available right now.
+  // Each room has a "status" in the database, which the server's scheduler keeps
+  // up to date ("available", or "occupied" while a booking is running).
+  // /get-rooms doesn't include it in its reply, but it can filter by it.
+  static Future<Set<int>> getAvailableRoomIds() async {
+    final rooms = await _get('/get-rooms?status=available') as List<dynamic>;
+    return {for (final room in rooms) room['id'] as int};
+  }
+
   // POST /add-to-booking → {message, booking_id, users: [{id, student_id}, ...]}
   // Returns the student IDs of everyone now in the booking.
   static Future<List<String>> addToBooking({required int bookingId, required String studentId}) async {

@@ -35,7 +35,8 @@ class Room {
   // Turns one room from the server into a Room.
   // The server identifies buildings by a database id (1, 2, 3...), but the app
   // uses the building number ("80"), so we're given a lookup from one to the other.
-  factory Room.fromApi(Map<String, dynamic> json, Map<int, String> buildingNumbers) {
+  // availableIds is the set of rooms the database says are available right now.
+  factory Room.fromApi(Map<String, dynamic> json, Map<int, String> buildingNumbers, Set<int> availableIds) {
     return Room(
       id: json['id'],
       name: json['name'],
@@ -46,9 +47,7 @@ class Room {
       hasTv: (json['televisions'] ?? 0) > 0,
       hasWhiteboard: (json['whiteboards'] ?? 0) > 0,
       hasProjector: (json['projectors'] ?? 0) > 0,
-      // The server doesn't tell us yet whether a room is free right now,
-      // so every room shows as free for the moment.
-      status: RoomStatus.free,
+      status: availableIds.contains(json['id']) ? RoomStatus.free : RoomStatus.busy,
     );
   }
 
@@ -113,14 +112,15 @@ Future<List<Room>> loadRooms({bool refresh = false}) {
 }
 
 Future<List<Room>> _fetchRooms() async {
-  // Ask for both lists at the same time, then wait for both.
-  final results = await Future.wait([Api.getBuildings(), Api.getRooms()]);
-  final buildings = results[0];
-  final roomsJson = results[1];
+  // Ask for all three at the same time, then wait for them all.
+  final results = await Future.wait([Api.getBuildings(), Api.getRooms(), Api.getAvailableRoomIds()]);
+  final buildings = results[0] as List<dynamic>;
+  final roomsJson = results[1] as List<dynamic>;
+  final availableIds = results[2] as Set<int>;
 
   // e.g. {1: "Building 8", 2: "Building 10", ...}
   final buildingNames = {for (final b in buildings) b['id'] as int: b['name'] as String};
-  final rooms = [for (final json in roomsJson) Room.fromApi(json, buildingNames)];
+  final rooms = [for (final json in roomsJson) Room.fromApi(json, buildingNames, availableIds)];
 
   // Turn the server's buildings into Buildings keyed by number ("8"), using the
   // server's name and position. A building without a position goes in the middle of campus.
