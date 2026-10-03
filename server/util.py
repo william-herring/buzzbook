@@ -1,10 +1,13 @@
 import json
 import io
 import zipfile
+from datetime import timezone
+from math import radians, sin, asin, sqrt, cos
+
 import qrcode
 from qrcode.constants import ERROR_CORRECT_M
 
-from models import db, Institution, Building, Room, User
+from models import db, Institution, Building, Room, User, Booking
 
 FEATURE_COLUMNS = {
     "Chairs": "chairs",
@@ -108,3 +111,23 @@ def generate_room_qr_zip(institution_id, output_path, prefix=DEFAULT_PREFIX):
             archive.writestr(f"{building_name}/{room.name}.png", buffer.getvalue())
 
     return len(rooms)
+
+
+def iso_utc(dt):
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    return dt.astimezone(timezone.utc).isoformat()
+
+def haversine_metres(lat1, lon1, lat2, lon2):
+    p1, p2 = radians(lat1), radians(lat2)
+    a = sin((p2 - p1) / 2) ** 2 + cos(p1) * cos(p2) * sin(radians(lon2 - lon1) / 2) ** 2
+    return 2 * 6371000 * asin(sqrt(a))
+
+
+def find_current_booking(user_id, room_id, now):
+    return Booking.query.filter(
+        Booking.room_id == room_id,
+        Booking.start_time <= now,
+        Booking.end_time > now,
+        Booking.users.any(User.id == user_id),
+    ).first()

@@ -34,6 +34,7 @@ class Room(db.Model):
     name = db.Column(db.String)
     building_id = db.Column(db.Integer, db.ForeignKey('building.id'))
     status = db.Column(db.String, default='available')
+    occupied_now = db.Column(db.Boolean, default=False)
     floor = db.Column(db.Integer)
     room_type = db.Column(db.String)
     capacity = db.Column(db.Integer)

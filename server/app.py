@@ -5,10 +5,11 @@ from flask import Flask, request, jsonify
 from flask_jwt_extended import create_access_token, JWTManager, jwt_required, get_jwt_identity
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import and_, func
+from sqlalchemy import and_, func, or_
 from sqlalchemy.exc import IntegrityError
 
 from models import *
+from util import haversine_metres, find_current_booking, iso_utc
 
 app = Flask(__name__)
 app.secret_key = os.getenv('SECRET_KEY')
@@ -211,3 +212,129 @@ def get_room(room_id):
     }
 
     return jsonify(data), 200
+
+def get_room_id_arg():
+    try:
+        return int(request.args.get('room_id'))
+    except (TypeError, ValueError):
+        return None
+
+
+@app.route('/room-sign-in', methods=['POST'])
+@jwt_required()
+def room_sign_in():
+    user = db.session.get(User, int(get_jwt_identity()))
+    if not user:
+        return jsonify({'message': 'User not found'}), 401
+
+    room_id = get_room_id_arg()
+    if room_id is None:
+        return jsonify({'message': 'room_id must be an integer'}), 400
+
+    room = Room.query.filter_by(id=room_id).with_for_update().first()
+    if not room:
+        return jsonify({'message': 'Room not found'}), 404
+
+    now = datetime.now(timezone.utc)
+    booking = find_current_booking(user.id, room.id, now)
+    if not booking:
+        return jsonify({'message': 'You have no booking for this room right now'}), 403
+
+    room.occupied_now = True
+    db.session.commit()
+
+    return jsonify({
+        'message': 'Signed in',
+        'room_id': room.id,
+        'booking_id': booking.id,
+        'ends_at': iso_utc(booking.end_time),
+    }), 200
+
+
+@app.route('/room-sign-out', methods=['POST'])
+@jwt_required()
+def room_sign_out():
+    user = db.session.get(User, int(get_jwt_identity()))
+    if not user:
+        return jsonify({'message': 'User not found'}), 401
+
+    room_id = get_room_id_arg()
+    if room_id is None:
+        return jsonify({'message': 'room_id must be an integer'}), 400
+
+    room = Room.query.filter_by(id=room_id).with_for_update().first()
+    if not room:
+        return jsonify({'message': 'Room not found'}), 404
+
+    now = datetime.now(timezone.utc)
+    booking = find_current_booking(user.id, room.id, now)
+    if not booking:
+        return jsonify({'message': 'You have no booking for this room right now'}), 403
+
+    booking_id = booking.id
+    room.occupied_now = False
+    room.status = 'available'
+    db.session.delete(booking)
+    db.session.commit()
+
+    return jsonify({
+        'message': 'Signed out',
+        'room_id': room.id,
+        'booking_id': booking_id,
+    }), 200
+
+
+@app.route('/rooms-near-me', methods=['GET'])
+@jwt_required()
+def get_rooms_near_me():
+    user = db.session.get(User, int(get_jwt_identity()))
+    if not user:
+        return jsonify({'message': 'User not found'}), 401
+
+    try:
+        latitude = float(request.args['latitude'])
+        longitude = float(request.args['longitude'])
+        radius = float(request.args.get('radius', 500))
+    except (KeyError, ValueError):
+        return jsonify({'message': 'latitude and longitude are required numbers; '
+                                   'radius (metres) must be a number'}), 400
+    if not (-90 <= latitude <= 90 and -180 <= longitude <= 180) or radius <= 0:
+        return jsonify({'message': 'Coordinates or radius out of range'}), 400
+
+    now = datetime.now(timezone.utc)
+    rows = (
+        db.session.query(Room, Building)
+        .join(Building, Room.building_id == Building.id)
+        .filter(
+            Building.institution_id == user.institution_id,
+            or_(Room.status.is_(None), Room.status == 'available'),
+            Room.occupied_now.is_not(True),
+            ~Room.bookings.any(and_(Booking.start_time <= now, Booking.end_time > now)),
+        )
+        .all()
+    )
+
+    results = []
+    for room, building in rows:
+        room_lat = room.latitude if room.latitude is not None else building.latitude
+        room_lon = room.longitude if room.longitude is not None else building.longitude
+        if room_lat is None or room_lon is None:
+            continue
+        distance = haversine_metres(latitude, longitude, room_lat, room_lon)
+        if distance > radius:
+            continue
+        results.append({
+            'id': room.id,
+            'name': room.name,
+            'building_id': building.id,
+            'building_name': building.name,
+            'floor': room.floor,
+            'room_type': room.room_type,
+            'capacity': room.capacity,
+            'latitude': room_lat,
+            'longitude': room_lon,
+            'distance_metres': round(distance),
+        })
+
+    results.sort(key=lambda r: r['distance_metres'])
+    return jsonify(results), 200
