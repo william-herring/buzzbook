@@ -40,7 +40,7 @@ class Room {
     return Room(
       id: json['id'],
       name: json['name'],
-      buildingId: buildingNumbers[json['building_id']] ?? '?',
+      buildingId: _buildingNumber(json, buildingNumbers),
       floor: json['floor'] ?? 0,
       roomType: json['room_type'] ?? '',
       capacity: json['capacity'] ?? 0,
@@ -49,6 +49,18 @@ class Room {
       hasProjector: (json['projectors'] ?? 0) > 0,
       status: status,
     );
+  }
+
+  // Works out the building number ("80") for a room.
+  // RMIT room names start with it ("80.05.003"), so that's tried first. Otherwise
+  // the number is pulled out of the server's building name, so "80",
+  // "Building 80" and "RMIT Building 80" all become "80".
+  static String _buildingNumber(Map<String, dynamic> json, Map<int, String> buildingNames) {
+    final fromRoomName = (json['name'] as String).split('.').first;
+    if (RegExp(r'^\d+$').hasMatch(fromRoomName)) return fromRoomName;
+
+    final buildingName = buildingNames[json['building_id']] ?? '';
+    return RegExp(r'\d+').firstMatch(buildingName)?.group(0) ?? buildingName;
   }
 
   // "80.05.003" → "Building 80, Level 5, Room 3"

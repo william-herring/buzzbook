@@ -54,8 +54,15 @@ class _RoomsScreenState extends State<RoomsScreen> {
   Widget build(BuildContext context) {
     // Build the list one section at a time: a heading per building,
     // then that building's rooms that pass the filters.
+    // Buildings we know about first (in map order), then any other building
+    // the server sent rooms for, so no room is ever silently left out.
+    final buildingIds = [
+      for (final b in rmitBuildings) b.id,
+      for (final id in allRooms.map((r) => r.buildingId).toSet())
+        if (!rmitBuildings.any((b) => b.id == id)) id,
+    ];
     final listItems = <Widget>[];
-    for (final building in rmitBuildings) {
+    for (final building in buildingIds.map(findBuilding)) {
       final rooms = allRooms
           .where((r) => r.buildingId == building.id && filters.matches(r))
           .toList()
@@ -85,9 +92,16 @@ class _RoomsScreenState extends State<RoomsScreen> {
             ),
           if (error != null) LoadError(error: error!, onRetry: () => fetchRooms(refresh: true)),
           if (!loading && error == null && listItems.isEmpty)
-            const Padding(
-              padding: EdgeInsets.all(24),
-              child: Text('No rooms match these filters.', style: TextStyle(color: AppColors.grey)),
+            Padding(
+              padding: const EdgeInsets.all(24),
+              child: Text(
+                allRooms.isEmpty
+                    // The server answered, but with an empty list.
+                    ? 'The server sent back 0 rooms. Check the database has rooms '
+                        'loaded for your institution.'
+                    : 'No rooms match these filters.',
+                style: const TextStyle(color: AppColors.grey),
+              ),
             ),
           ...listItems,
         ],
