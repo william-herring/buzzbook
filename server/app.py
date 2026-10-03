@@ -221,7 +221,12 @@ def get_room(room_id):
             'latitude': building.latitude,
             'longitude': building.longitude,
         },
-        'bookings': [b.id for b in upcoming],
+        'bookings': [{
+            'id': b.id,
+            'start_time': iso_utc(b.start_time),
+            'end_time': iso_utc(b.end_time),
+            'student_ids': [u.student_id for u in b.users],
+        } for b in upcoming],
     }
 
     return jsonify(data), 200
