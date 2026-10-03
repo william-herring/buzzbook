@@ -38,9 +38,10 @@ class Api {
     required DateTime end,
     required List<String> studentIds,
   }) async {
-    final response = await _send(() async => http.post(
+    final headers = await _authHeaders();
+    final response = await _send(() => http.post(
           Uri.parse('$apiBaseUrl/book-room'),
-          headers: await AuthStorage.authHeaders(),
+          headers: headers,
           body: jsonEncode({
             'room_id': roomId,
             // The server wants times with a timezone; UTC ("...Z") is simplest.
@@ -53,11 +54,22 @@ class Api {
   }
 
   static Future<dynamic> _get(String path) async {
-    final response = await _send(() async => http.get(
+    final headers = await _authHeaders();
+    final response = await _send(() => http.get(
           Uri.parse('$apiBaseUrl$path'),
-          headers: await AuthStorage.authHeaders(),
+          headers: headers,
         ));
     return jsonDecode(response.body);
+  }
+
+  // Reads the saved login token (from the iPhone keychain / Android keystore).
+  // Kept separate from _send so a storage problem isn't mistaken for a network one.
+  static Future<Map<String, String>> _authHeaders() async {
+    try {
+      return await AuthStorage.authHeaders();
+    } catch (e) {
+      throw ApiException("Couldn't read the saved login from this device.\n($e)", needsLogin: true);
+    }
   }
 
   // Sends a request and turns every kind of failure into an ApiException
@@ -67,7 +79,10 @@ class Api {
     try {
       response = await request().timeout(_timeout);
     } catch (e) {
-      throw ApiException("Couldn't reach the server at $apiBaseUrl");
+      // Include the real error so it's clear what went wrong, e.g.
+      // "Connection refused" (nothing listening there), "timed out" (wrong IP or
+      // network), "App Transport Security" (iOS blocking plain http://).
+      throw ApiException("Couldn't reach the server at $apiBaseUrl\n($e)");
     }
 
     if (response.statusCode >= 200 && response.statusCode < 300) return response;
